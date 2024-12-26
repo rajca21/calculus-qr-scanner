@@ -11,6 +11,7 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
+import * as Linking from 'expo-linking';
 import Feather from '@expo/vector-icons/Feather';
 
 import images from '@/assets/constants/images';
@@ -67,7 +68,9 @@ const SignIn = () => {
     setLoading(false);
   };
 
-  const handleRegister = () => {};
+  const handleRegister = () => {
+    Linking.openURL('/');
+  };
 
   return (
     <SafeAreaView className='bg-primary-500 h-full'>
