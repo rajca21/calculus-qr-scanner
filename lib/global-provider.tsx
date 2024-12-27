@@ -3,6 +3,7 @@ import React, { createContext, useContext, ReactNode, useState } from 'react';
 interface User {
   $id: string;
   username: string;
+  pib: string;
 }
 
 interface GlobalContextType {

@@ -1,5 +1,6 @@
-import images from '@/assets/constants/images';
 import { Image, TouchableOpacity, View } from 'react-native';
+
+import images from '@/assets/constants/images';
 
 export default function Index() {
   return (

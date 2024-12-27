@@ -67,6 +67,7 @@ const SignIn = () => {
       setUser({
         $id: '1',
         username,
+        pib: '12345678',
       });
       setIsLoggedIn(true);
       router.push('/');
