@@ -11,17 +11,20 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
-import * as Linking from 'expo-linking';
+import { Redirect, router } from 'expo-router';
 import Feather from '@expo/vector-icons/Feather';
 
 import images from '@/assets/constants/images';
+import { useGlobalContext } from '@/lib/global-provider';
 
 const SignIn = () => {
   const [showLoginForm, setShowLoginForm] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+
+  const { loading, setLoading, setUser, isLoggedIn, setIsLoggedIn } =
+    useGlobalContext();
 
   const formTranslateY = useRef(new Animated.Value(1000)).current;
 
@@ -57,10 +60,16 @@ const SignIn = () => {
     }
 
     const res = {
-      status: false,
+      status: true,
     };
 
     if (res?.status) {
+      setUser({
+        $id: '1',
+        username,
+      });
+      setIsLoggedIn(true);
+      router.push('/');
     } else {
       setError('Pogrešni kredencijali!');
     }
@@ -69,8 +78,10 @@ const SignIn = () => {
   };
 
   const handleRegister = () => {
-    Linking.openURL('/');
+    router.push('/');
   };
+
+  if (isLoggedIn) return <Redirect href='/' />;
 
   return (
     <SafeAreaView className='bg-primary-500 h-full'>
