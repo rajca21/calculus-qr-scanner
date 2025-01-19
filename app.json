@@ -33,6 +33,12 @@
           "backgroundColor": "#699cf5",
           "enableFullScreenImage_legacy": true
         }
+      ],
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Dozvolite Calculus QR kod skeneru da pristupi Vašoj kameri"
+        }
       ]
     ],
     "experiments": {
