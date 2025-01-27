@@ -11,12 +11,16 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
 import images from '@/assets/constants/images';
+import { customAlert } from '@/lib/helpers';
+import ReceiptModal from '@/components/ReceiptModal';
 
 export default function Index() {
   const [facing, setFacing] = useState<CameraType>('back');
   const [cameraOpen, setCameraOpen] = useState(false);
   const [scanned, setScanned] = useState(false);
-  const [scannedData, setScanneddata] = useState<string>('');
+  const [scannedData, setScannedData] = useState<string>('');
+  const [showModal, setShowModal] = useState<boolean>(false);
+  const [scannedReceipt, setScannedReceipt] = useState<string>('');
   const [cameraPermission, requestPermission] = useCameraPermissions();
 
   async function openCamera() {
@@ -37,10 +41,13 @@ export default function Index() {
   const handleBarcodeScanned = (qrCodeResults: BarcodeScanningResult) => {
     const url = qrCodeResults.data;
     if (url && !url.startsWith('https://suf.purs.gov.rs')) {
-      return alert('Molimo Vas skenirajte QR kod sa fiskalnog računa.');
+      return customAlert(
+        'Upozorenje!',
+        'Molimo Vas skenirajte QR kod sa fiskalnog računa.'
+      );
     }
     setScanned(true);
-    setScanneddata(url);
+    setScannedData(url);
   };
 
   const handleReadBarcode = async () => {
@@ -49,18 +56,22 @@ export default function Index() {
       const response = await fetch(url);
       const htmlText = await response.text();
 
-      const preTagContent = htmlText.match(/<pre[^>]*>([\s\S]*?)<br\/>/i)?.[1];
+      const preTagContent = htmlText.match(/<pre[^>]*>[\s\S]*?<\/pre>/i)?.[0];
 
       if (preTagContent) {
-        console.log('Content inside <pre>:', preTagContent.trim());
-        alert(preTagContent.trim());
+        setScannedReceipt(preTagContent);
+        setShowModal(true);
       } else {
-        console.log('No <pre> tag found on the page.');
-        alert('No <pre> tag found on the page.');
+        customAlert(
+          'Upozorenje!',
+          'Došlo je do promene strukture na sajtu poreske uprave. Obratite se korisničkoj podršci'
+        );
       }
     } catch (error) {
-      console.error('Error fetching or parsing the HTML:', error);
-      alert('Failed to fetch or parse the page. Please check the URL.');
+      customAlert(
+        'Greška!',
+        'Greška prilikom parsiranja URL adrese poreske uprave!'
+      );
     }
   };
 
@@ -101,6 +112,18 @@ export default function Index() {
           >
             <Text className='text-white'>Prikaži skenirani račun</Text>
           </TouchableOpacity>
+        )}
+
+        {showModal && (
+          <ReceiptModal
+            showModal={showModal}
+            setShowModal={setShowModal}
+            scannedReceipt={scannedReceipt}
+            readOnly={false}
+            scannedData={scannedData}
+            setScannedData={setScannedData}
+            setScanned={setScanned}
+          />
         )}
       </CameraView>
     );
