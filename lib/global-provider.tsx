@@ -1,9 +1,16 @@
-import React, { createContext, useContext, ReactNode, useState } from 'react';
+import React, {
+  createContext,
+  useContext,
+  ReactNode,
+  useState,
+  useEffect,
+} from 'react';
+
+import { getLocalStorage } from './localAsyncStorage';
 
 interface User {
-  $id: string;
-  username: string;
-  pib: string;
+  uid: string;
+  email: string;
 }
 
 interface GlobalContextType {

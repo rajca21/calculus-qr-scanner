@@ -8,26 +8,31 @@ import {
   View,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
-import FontAwesome from '@expo/vector-icons/FontAwesome';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { router } from 'expo-router';
+import { signOut } from 'firebase/auth';
 
 import { useGlobalContext } from '@/lib/global-provider';
+import { auth } from '@/lib/firebaseConfig';
+import { removeLocalStorage } from '@/lib/localAsyncStorage';
 
 const Config = () => {
   const { user, setUser, setIsLoggedIn } = useGlobalContext();
 
-  const [username, setUsername] = useState(user?.username || '');
-  const [pib, setPib] = useState(user?.pib || '');
+  const [email, setEmail] = useState(user?.email || '');
   const [newPassword, setNewPassword] = useState('');
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
 
   const handleUpdateData = () => {
-    setUser({ $id: user?.$id || '', username, pib });
+    //
   };
 
   const handleLogout = () => {
+    signOut(auth);
+    removeLocalStorage();
     setUser(null);
     setIsLoggedIn(false);
+    router.replace('/sign-in');
   };
 
   return (
@@ -43,22 +48,12 @@ const Config = () => {
         <View className='flex flex-col justify-between h-full w-full'>
           <View className='flex flex-col gap-5 mt-5'>
             <View className='flex flex-row items-center border border-gray-300 rounded-lg p-4 w-full'>
-              <Feather name='user' size={24} color='black' />
+              <Feather name='mail' size={24} color='black' />
               <TextInput
-                placeholder='Korisničko ime'
+                placeholder='Email adresa'
                 className='pl-4 font-rubik border-none outline-none w-full'
-                value={username}
-                onChangeText={(text) => setUsername(text)}
-              />
-            </View>
-
-            <View className='flex flex-row items-center border border-gray-300 rounded-lg p-4 w-full'>
-              <FontAwesome name='building-o' size={24} color='black' />
-              <TextInput
-                placeholder='PIB'
-                className='pl-4 font-rubik border-none outline-none w-full'
-                value={pib}
-                onChangeText={(text) => setPib(text)}
+                value={email}
+                onChangeText={(text) => setEmail(text)}
               />
             </View>
 
@@ -85,7 +80,7 @@ const Config = () => {
             </View>
           </View>
 
-          <View className='flex flex-col gap-5 mb-5'>
+          <View className='flex flex-col gap-5 mb-24'>
             <TouchableOpacity
               disabled={false}
               onPress={handleUpdateData}

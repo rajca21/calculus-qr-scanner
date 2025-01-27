@@ -6,80 +6,43 @@ import {
   SafeAreaView,
   ScrollView,
   Text,
-  TextInput,
   TouchableOpacity,
-  TouchableWithoutFeedback,
   View,
 } from 'react-native';
-import { Redirect, router } from 'expo-router';
-import Feather from '@expo/vector-icons/Feather';
+import { Redirect } from 'expo-router';
 
 import images from '@/assets/constants/images';
 import { useGlobalContext } from '@/lib/global-provider';
+import LoginForm from '@/components/LoginForm';
+import RegisterForm from '@/components/RegisterForm';
 
 const SignIn = () => {
   const [showLoginForm, setShowLoginForm] = useState(false);
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
+  const [showRegisterForm, setShowRegisterForm] = useState(false);
 
-  const { loading, setLoading, setUser, isLoggedIn, setIsLoggedIn } =
-    useGlobalContext();
+  const { isLoggedIn } = useGlobalContext();
 
   const formTranslateY = useRef(new Animated.Value(1000)).current;
+  const formRegTranslateY = useRef(new Animated.Value(1000)).current;
 
   const handleOpenForm = () => {
+    setShowLoginForm(true);
+    formTranslateY.setValue(1000);
     Animated.timing(formTranslateY, {
       toValue: 0,
       duration: 500,
       useNativeDriver: true,
-    }).start(() => setShowLoginForm(true));
+    }).start();
   };
 
-  const handleCloseForm = () => {
-    Keyboard.dismiss();
-    Animated.timing(formTranslateY, {
-      toValue: 1000,
+  const handleOpenRegForm = () => {
+    setShowRegisterForm(true);
+    formRegTranslateY.setValue(1000);
+    Animated.timing(formRegTranslateY, {
+      toValue: 0,
       duration: 500,
       useNativeDriver: true,
-    }).start(() => setShowLoginForm(false));
-  };
-
-  const handleLogin = () => {
-    setError('');
-    setLoading(true);
-
-    if (username.trim() === '' || !username) {
-      setError('Unesite korisničko ime!');
-      return;
-    }
-
-    if (password.trim() === '' || !password) {
-      setError('Unesite lozinku!');
-      return;
-    }
-
-    const res = {
-      status: true,
-    };
-
-    if (res?.status) {
-      setUser({
-        $id: '1',
-        username,
-        pib: '12345678',
-      });
-      setIsLoggedIn(true);
-      router.push('/');
-    } else {
-      setError('Pogrešni kredencijali!');
-    }
-
-    setLoading(false);
-  };
-
-  const handleRegister = () => {
-    router.push('/');
+    }).start();
   };
 
   if (isLoggedIn) return <Redirect href='/' />;
@@ -112,7 +75,7 @@ const SignIn = () => {
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
-              onPress={handleRegister}
+              onPress={handleOpenRegForm}
               className='shadow-md border-white border-2 bg-transparent text-center py-3 rounded-full w-full text-accent-100'
             >
               <Text className='text-lg font-rubik-medium text-center text-accent-100'>
@@ -124,77 +87,17 @@ const SignIn = () => {
       </ScrollView>
 
       {showLoginForm && (
-        <TouchableWithoutFeedback onPress={handleCloseForm}>
-          <View
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              right: 0,
-              bottom: 0,
-              backgroundColor: 'rgba(0, 0, 0, 0.5)',
-            }}
-          >
-            {/* Login Form */}
-            <Animated.View
-              style={{
-                transform: [{ translateY: formTranslateY }],
-                position: 'absolute',
-                bottom: 0,
-                width: '100%',
-                height: '50%',
-                backgroundColor: '#fff',
-                borderTopLeftRadius: 24,
-                borderTopRightRadius: 24,
-                padding: 20,
-                elevation: 5,
-              }}
-            >
-              <TouchableWithoutFeedback>
-                <View>
-                  <Text className='text-xl font-rubik-medium text-center mb-6'>
-                    Unesite vaše kredencijale
-                  </Text>
-                  <View className='flex flex-row items-center border border-gray-300 rounded-lg p-4 mb-4'>
-                    <Feather name='user' size={24} color='black' />
-                    <TextInput
-                      placeholder='Korisničko ime'
-                      className='pl-4 font-rubik border-none outline-none w-full'
-                      defaultValue={username}
-                      onChangeText={(text) => setUsername(text)}
-                    />
-                  </View>
+        <LoginForm
+          formTranslateY={formTranslateY}
+          setShowLoginForm={setShowLoginForm}
+        />
+      )}
 
-                  <View className='flex flex-row items-center border border-gray-300 rounded-lg p-4 mb-4'>
-                    <Feather name='lock' size={24} color='black' />
-                    <TextInput
-                      placeholder='Lozinka'
-                      secureTextEntry
-                      className='pl-4 font-rubik border-none outline-none w-full'
-                      defaultValue={password}
-                      onChangeText={(text) => setPassword(text)}
-                    />
-                  </View>
-
-                  {error && (
-                    <Text className='mb-4 text-danger font-rubik-bold text-md'>
-                      {error}
-                    </Text>
-                  )}
-                  <TouchableOpacity
-                    disabled={loading}
-                    onPress={handleLogin}
-                    className='bg-primary-500 py-3 rounded-lg'
-                  >
-                    <Text className='text-lg font-rubik-medium text-center text-white'>
-                      Uloguj se
-                    </Text>
-                  </TouchableOpacity>
-                </View>
-              </TouchableWithoutFeedback>
-            </Animated.View>
-          </View>
-        </TouchableWithoutFeedback>
+      {showRegisterForm && (
+        <RegisterForm
+          formRegTranslateY={formRegTranslateY}
+          setShowRegisterForm={setShowRegisterForm}
+        />
       )}
     </SafeAreaView>
   );
