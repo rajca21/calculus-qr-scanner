@@ -10,14 +10,28 @@ import {
   RefreshControl,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-import { collection, getDocs, orderBy, query, where } from 'firebase/firestore';
+import {
+  collection,
+  doc,
+  getDocs,
+  orderBy,
+  query,
+  updateDoc,
+  where,
+} from 'firebase/firestore';
 
 import icons from '@/assets/constants/icons';
 import { ReceiptView } from '@/lib/types/Receipt';
 import { customAlert } from '@/lib/helpers';
 import { useGlobalContext } from '@/lib/global-provider';
-import { db } from '@/lib/firebaseConfig';
+import { db, storage } from '@/lib/firebaseConfig';
 import ReceiptsViewModal from '@/components/modals/ReceiptsViewModal';
+import {
+  getDownloadURL,
+  ref,
+  uploadBytes,
+  uploadString,
+} from 'firebase/storage';
 
 const Receipts = () => {
   const [receipts, setReceipts] = useState<Array<ReceiptView>>([]);
@@ -76,21 +90,67 @@ const Receipts = () => {
     }
   };
 
-  const exportReceipts = async () => {};
+  const exportReceipts = async () => {
+    if (!isLoggedIn || !user) {
+      router.replace('/sign-in');
+    }
+
+    try {
+      setLoading(true);
+      const today = new Date().toISOString().split('T')[0];
+      const fileName = `${user?.email}-${today}.txt`;
+      const fileRef = ref(storage, fileName);
+
+      let existingContent = '';
+
+      try {
+        const fileUrl = await getDownloadURL(fileRef);
+        const response = await fetch(fileUrl);
+        existingContent = await response.text();
+      } catch (error) {
+        //
+      }
+
+      const newReceipts = receipts.map((receipt) => receipt.url).join('\n');
+      const updatedContent = existingContent
+        ? `${existingContent}\n${newReceipts}`
+        : newReceipts;
+
+      const blob = new Blob([updatedContent], { type: 'text/plain' });
+      await uploadBytes(fileRef, blob);
+
+      const updatePromises = receipts.map(async (receipt) => {
+        const receiptRef = doc(db, 'receipts', receipt.docId);
+        return updateDoc(receiptRef, { exported: true });
+      });
+
+      await Promise.all(updatePromises);
+
+      customAlert('Obaveštenje', 'Uspešno izvezeni računi.');
+      setLoading(false);
+    } catch (error) {
+      console.log(error);
+      setLoading(false);
+      customAlert('Greška', 'Greška prilikom eksportovanja računa!');
+    }
+  };
 
   return (
     <SafeAreaView className='bg-white h-screen'>
       <View className='p-5'>
         <View className='w-full flex flex-row justify-between items-center'>
           <Text className='text-xl font-rubik-bold'>Skenirani računi</Text>
-          <TouchableOpacity
-            onPress={exportReceipts}
-            className='border-2 border-primary-300  px-2 py-3 rounded-md'
-          >
-            <Text className='color-primary-300 font-rubik-semibold'>
-              Izvezi sve račune
-            </Text>
-          </TouchableOpacity>
+
+          {receipts && receipts.length > 0 && (
+            <TouchableOpacity
+              onPress={exportReceipts}
+              className='border-2 border-primary-300  px-2 py-3 rounded-md'
+            >
+              <Text className='color-primary-300 font-rubik-semibold'>
+                Izvezi sve račune
+              </Text>
+            </TouchableOpacity>
+          )}
         </View>
 
         {loading ? (
@@ -128,6 +188,12 @@ const Receipts = () => {
           />
         )}
       </View>
+
+      {receipts?.length <= 0 && (
+        <Text className='font-rubik text-xl mt-5'>
+          Nemate skeniranih računa
+        </Text>
+      )}
 
       {showModal && (
         <ReceiptsViewModal
