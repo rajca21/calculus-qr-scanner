@@ -128,6 +128,7 @@ const Receipts = () => {
 
       customAlert('Obaveštenje', 'Uspešno izvezeni računi.');
       setLoading(false);
+      fetchReceipts();
     } catch (error) {
       console.log(error);
       setLoading(false);
@@ -152,6 +153,12 @@ const Receipts = () => {
             </TouchableOpacity>
           )}
         </View>
+
+        {!loading && receipts && receipts.length <= 0 && (
+          <Text className='font-rubik text-xl mt-5'>
+            Nemate skeniranih računa
+          </Text>
+        )}
 
         {loading ? (
           <View className='mt-6'>
@@ -188,12 +195,6 @@ const Receipts = () => {
           />
         )}
       </View>
-
-      {receipts?.length <= 0 && (
-        <Text className='font-rubik text-xl mt-5'>
-          Nemate skeniranih računa
-        </Text>
-      )}
 
       {showModal && (
         <ReceiptsViewModal
