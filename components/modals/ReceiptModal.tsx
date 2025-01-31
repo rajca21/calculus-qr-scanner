@@ -1,7 +1,3 @@
-import { db } from '@/lib/firebaseConfig';
-import { customAlert } from '@/lib/helpers';
-import { getLocalStorage } from '@/lib/localAsyncStorage';
-import { doc, setDoc } from 'firebase/firestore';
 import { useState } from 'react';
 import {
   View,
@@ -11,6 +7,11 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import RenderHtml from 'react-native-render-html';
+import { doc, setDoc } from 'firebase/firestore';
+
+import { db } from '@/lib/firebaseConfig';
+import { customAlert } from '@/lib/helpers';
+import { getLocalStorage } from '@/lib/localAsyncStorage';
 
 export default function ReceiptModal({
   showModal,

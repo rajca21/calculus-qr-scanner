@@ -12,7 +12,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 
 import images from '@/assets/constants/images';
 import { customAlert } from '@/lib/helpers';
-import ReceiptModal from '@/components/ReceiptModal';
+import ReceiptModal from '@/components/modals/ReceiptModal';
 
 export default function Index() {
   const [facing, setFacing] = useState<CameraType>('back');
