@@ -21,6 +21,7 @@ export default function Index() {
   const [scannedData, setScannedData] = useState<string>('');
   const [showModal, setShowModal] = useState<boolean>(false);
   const [scannedReceipt, setScannedReceipt] = useState<string>('');
+  const [scannedInvoiceNumber, setScannedInvoiceNumber] = useState<string>('');
   const [cameraPermission, requestPermission] = useCameraPermissions();
 
   async function openCamera() {
@@ -55,6 +56,13 @@ export default function Index() {
       const url = scannedData;
       const response = await fetch(url);
       const htmlText = await response.text();
+
+      const invoiceNumber = htmlText.match(
+        /<span id="invoiceNumberLabel"[^>]*>([\s\S]*?)<\/span>/i
+      )?.[1];
+      if (invoiceNumber && invoiceNumber.length > 0) {
+        setScannedInvoiceNumber(invoiceNumber?.trim());
+      }
 
       const preTagContent = htmlText.match(/<pre[^>]*>[\s\S]*?<\/pre>/i)?.[0];
 
@@ -123,6 +131,8 @@ export default function Index() {
             scannedData={scannedData}
             setScannedData={setScannedData}
             setScanned={setScanned}
+            scannedInvoiceNumber={scannedInvoiceNumber}
+            setScannedInvoiceNumber={setScannedInvoiceNumber}
           />
         )}
       </CameraView>

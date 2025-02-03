@@ -4,6 +4,7 @@ export interface Receipt {
   url: string;
   userId: string;
   exported: boolean;
+  invoiceNumber: string;
 }
 
 export interface ReceiptView extends Receipt {

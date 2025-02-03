@@ -5,33 +5,27 @@ import {
   View,
   FlatList,
   TouchableOpacity,
-  Image,
   ActivityIndicator,
   RefreshControl,
 } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import { useRouter } from 'expo-router';
 import {
   collection,
   doc,
   getDocs,
-  orderBy,
   query,
   updateDoc,
   where,
 } from 'firebase/firestore';
+import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 
-import icons from '@/assets/constants/icons';
 import { ReceiptView } from '@/lib/types/Receipt';
 import { customAlert } from '@/lib/helpers';
 import { useGlobalContext } from '@/lib/global-provider';
 import { db, storage } from '@/lib/firebaseConfig';
 import ReceiptsViewModal from '@/components/modals/ReceiptsViewModal';
-import {
-  getDownloadURL,
-  ref,
-  uploadBytes,
-  uploadString,
-} from 'firebase/storage';
+import ReceiptCard from '@/components/cards/ReceiptCard';
 
 const Receipts = () => {
   const [receipts, setReceipts] = useState<Array<ReceiptView>>([]);
@@ -42,7 +36,7 @@ const Receipts = () => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  const { isLoggedIn, user } = useGlobalContext();
+  const { isLoggedIn, setIsLoggedIn, user, setUser } = useGlobalContext();
   const router = useRouter();
 
   useEffect(() => {
@@ -78,6 +72,7 @@ const Receipts = () => {
             url: doc.data().url,
             userId: doc.data().userId,
             exported: doc.data().exported,
+            invoiceNumber: doc.data().invoiceNumber,
             checked: false,
           },
         ]);
@@ -86,7 +81,13 @@ const Receipts = () => {
     } catch (error) {
       console.log(error);
       setLoading(false);
-      customAlert('Greška', 'Greška prilikom učitavanja računa!');
+      customAlert(
+        'Greška',
+        'Greška prilikom učitavanja računa! Molimo ulogujte se ponovo.'
+      );
+      setIsLoggedIn(false);
+      setUser(null);
+      router.replace('/sign-in');
     }
   };
 
@@ -137,74 +138,68 @@ const Receipts = () => {
   };
 
   return (
-    <SafeAreaView className='bg-white h-screen'>
-      <View className='p-5'>
-        <View className='w-full flex flex-row justify-between items-center'>
-          <Text className='text-xl font-rubik-bold'>Skenirani računi</Text>
+    <GestureHandlerRootView className='bg-white h-screen'>
+      <SafeAreaView className='bg-white h-screen'>
+        <View className='p-5'>
+          <View className='w-full flex flex-row justify-between items-center'>
+            <Text className='text-xl font-rubik-bold'>Skenirani računi</Text>
 
-          {receipts && receipts.length > 0 && (
-            <TouchableOpacity
-              onPress={exportReceipts}
-              className='border-2 border-primary-300  px-2 py-3 rounded-md'
-            >
-              <Text className='color-primary-300 font-rubik-semibold'>
-                Izvezi sve račune
-              </Text>
-            </TouchableOpacity>
+            {receipts && receipts.length > 0 && (
+              <TouchableOpacity
+                onPress={exportReceipts}
+                className='border-2 border-primary-300  px-2 py-3 rounded-md'
+              >
+                <Text className='color-primary-300 font-rubik-semibold'>
+                  Izvezi sve račune
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
+
+          {!loading && receipts && receipts.length <= 0 && (
+            <Text className='font-rubik text-xl mt-5'>
+              Nemate skeniranih računa
+            </Text>
+          )}
+
+          {loading ? (
+            <View className='mt-6'>
+              <ActivityIndicator size='large' color='#2867d3' />
+            </View>
+          ) : (
+            <FlatList
+              data={receipts}
+              className='h-screen mt-5'
+              refreshControl={
+                <RefreshControl
+                  refreshing={refreshing}
+                  onRefresh={onRefresh}
+                  colors={['#2867d3']}
+                />
+              }
+              renderItem={({ item, index }) => (
+                <ReceiptCard
+                  item={item}
+                  index={index}
+                  setCurrentReceipt={setCurrentReceipt}
+                  setShowModal={setShowModal}
+                  fetchReceipts={fetchReceipts}
+                />
+              )}
+            />
           )}
         </View>
 
-        {!loading && receipts && receipts.length <= 0 && (
-          <Text className='font-rubik text-xl mt-5'>
-            Nemate skeniranih računa
-          </Text>
-        )}
-
-        {loading ? (
-          <View className='mt-6'>
-            <ActivityIndicator size='large' color='#2867d3' />
-          </View>
-        ) : (
-          <FlatList
-            data={receipts}
-            className='h-screen mt-5'
-            refreshControl={
-              <RefreshControl
-                refreshing={refreshing}
-                onRefresh={onRefresh}
-                colors={['#2867d3']}
-              />
-            }
-            renderItem={({ item, index }) => (
-              <View className='flex flex-row w-full p-5 items-center justify-between border rounded-md border-gray-100 mb-2'>
-                <TouchableOpacity
-                  className='flex w-[90%] flex-row gap-8 items-center'
-                  onPress={() => {
-                    setCurrentReceipt(item);
-                    setShowModal(true);
-                  }}
-                >
-                  <Text className='text-lg font-rubik-bold'>{index + 1}.</Text>
-                  <Text className='text-lg font-rubik'>
-                    {new Date(parseInt(item?.docId)).toLocaleDateString()}
-                  </Text>
-                </TouchableOpacity>
-                <Image source={icons.receipt} className='w-8 h-8' />
-              </View>
-            )}
+        {showModal && (
+          <ReceiptsViewModal
+            showModal={showModal}
+            setShowModal={setShowModal}
+            scannedReceipt={currentReceipt!.scannedReceipt}
+            readOnly={true}
           />
         )}
-      </View>
-
-      {showModal && (
-        <ReceiptsViewModal
-          showModal={showModal}
-          setShowModal={setShowModal}
-          scannedReceipt={currentReceipt!.scannedReceipt}
-          readOnly={true}
-        />
-      )}
-    </SafeAreaView>
+      </SafeAreaView>
+    </GestureHandlerRootView>
   );
 };
 

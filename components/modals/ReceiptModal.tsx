@@ -21,6 +21,8 @@ export default function ReceiptModal({
   scannedData,
   setScannedData,
   setScanned,
+  scannedInvoiceNumber,
+  setScannedInvoiceNumber,
 }: {
   showModal: boolean;
   setShowModal: (value: React.SetStateAction<boolean>) => void;
@@ -29,6 +31,8 @@ export default function ReceiptModal({
   scannedData: string;
   setScannedData: (value: React.SetStateAction<string>) => void;
   setScanned: (value: React.SetStateAction<boolean>) => void;
+  scannedInvoiceNumber: string;
+  setScannedInvoiceNumber: (value: React.SetStateAction<string>) => void;
 }) {
   const [loading, setLoading] = useState(false);
 
@@ -44,7 +48,7 @@ export default function ReceiptModal({
     const docId = Date.now().toString();
     const user = await getLocalStorage('userDetails');
 
-    if (!scannedReceipt || !scannedData) {
+    if (!scannedReceipt || !scannedData || !scannedInvoiceNumber) {
       return customAlert('Greška!', 'Greška prilikom učitavanja računa!');
     }
     if (!user) {
@@ -62,6 +66,7 @@ export default function ReceiptModal({
         userId: user.uid,
         scannedReceipt,
         exported: false,
+        invoiceNumber: scannedInvoiceNumber,
       });
 
       customAlert('Obaveštenje', 'Uspešno učitan račun.');
@@ -69,10 +74,12 @@ export default function ReceiptModal({
       setLoading(false);
       setScanned(false);
       setScannedData('');
+      setScannedInvoiceNumber('');
       setShowModal(false);
     } catch (error) {
       console.log(error);
       setLoading(false);
+      customAlert('Greška!', 'Greška prilikom učitavanja računa.');
     }
   };
 
