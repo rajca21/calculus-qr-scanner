@@ -7,3 +7,13 @@ export const customAlert = (title: string, message: string) => {
     Alert.alert(title, message);
   }
 };
+
+export const hasMaliciousInput = (text: string) => {
+  const regex = /['";<>(){}]/g;
+  if (regex.test(text)) {
+    console.warn('Potentially harmful characters detected!');
+    customAlert('Upozorenje!', 'Nije dozvoljen unos karaktera \'";<>(){}');
+    return true;
+  }
+  return false;
+};

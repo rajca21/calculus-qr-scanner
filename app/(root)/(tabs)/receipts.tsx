@@ -141,8 +141,8 @@ const Receipts = () => {
   return (
     <GestureHandlerRootView className='bg-white h-screen'>
       <SafeAreaView className='bg-white h-screen'>
-        <View className='p-5'>
-          <View className='w-full flex flex-row justify-between items-center'>
+        <View className='px-7 py-5'>
+          <View className='w-full flex flex-row justify-between items-start'>
             <Text className='text-xl font-rubik-bold'>Skenirani računi</Text>
 
             {receipts && receipts.length > 0 && (
