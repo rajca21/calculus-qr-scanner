@@ -12,9 +12,10 @@ import {
 import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { signInWithEmailAndPassword } from 'firebase/auth';
+import { doc, getDoc } from 'firebase/firestore';
 
 import { useGlobalContext } from '@/lib/global-provider';
-import { auth } from '../lib/firebaseConfig';
+import { auth, db } from '../lib/firebaseConfig';
 import { setLocalStorage } from '@/lib/localAsyncStorage';
 import { customAlert } from '@/lib/helpers';
 
@@ -28,10 +29,11 @@ export default function LoginForm({
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const router = useRouter();
 
-  const { loading, setLoading, setUser } = useGlobalContext();
+  const { setUser } = useGlobalContext();
 
   const handleCloseForm = () => {
     Keyboard.dismiss();
@@ -44,34 +46,45 @@ export default function LoginForm({
 
   const handleLogin = () => {
     setError('');
-    setLoading(true);
 
     if (email.trim() === '' || !email) {
-      setError('Unesite E-mail adresu!');
-      return;
+      return setError('Unesite E-mail adresu!');
     }
     if (password.trim() === '' || !password) {
-      setError('Unesite lozinku!');
-      return;
+      return setError('Unesite lozinku!');
     }
 
+    setLoading(true);
     signInWithEmailAndPassword(auth, email, password)
       .then(async (userCredentials) => {
         const user = userCredentials.user;
-        await setLocalStorage('userDetails', user);
-        setUser({
-          uid: userCredentials.user.uid,
-          email: userCredentials.user.email!,
-        });
+        const userDoc = await getDoc(doc(db, 'users', user.uid));
+        if (userDoc.exists()) {
+          const userData = userDoc.data();
+          setUser({
+            uid: userCredentials.user.uid,
+            email: userCredentials.user.email!,
+            role: userData.role,
+          });
+          await setLocalStorage('userDetails', {
+            ...user,
+            role: userData.role,
+          });
+        } else {
+          return customAlert(
+            'Upozorenje!',
+            'Greška prilikom prikupljanja korisničkih podataka!'
+          );
+        }
+        setLoading(false);
         router.replace('/(root)/(tabs)');
       })
       .catch((error) => {
+        setLoading(false);
         if (error.code === 'auth/invalid-credential') {
           customAlert('Upozorenje!', 'Pogrešni kredencijali!');
         }
       });
-
-    setLoading(false);
   };
 
   return (
@@ -139,7 +152,9 @@ export default function LoginForm({
             >
               <Text className='text-lg font-rubik-medium text-center text-white'>
                 {loading ? (
-                  <ActivityIndicator size={'large'} color={'#2867d3'} />
+                  <View className='w-full flex justify-center items-center'>
+                    <ActivityIndicator size={'large'} color={'white'} />
+                  </View>
                 ) : (
                   'Uloguj se'
                 )}

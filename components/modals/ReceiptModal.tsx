@@ -67,6 +67,7 @@ export default function ReceiptModal({
         scannedReceipt,
         exported: false,
         invoiceNumber: scannedInvoiceNumber,
+        createdAt: new Date(),
       });
 
       customAlert('Obaveštenje', 'Uspešno učitan račun.');

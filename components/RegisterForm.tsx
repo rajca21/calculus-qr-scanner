@@ -12,9 +12,10 @@ import {
 import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
 
 import { useGlobalContext } from '@/lib/global-provider';
-import { auth } from '../lib/firebaseConfig';
+import { auth, db } from '../lib/firebaseConfig';
 import { setLocalStorage } from '@/lib/localAsyncStorage';
 import { customAlert } from '@/lib/helpers';
 
@@ -27,11 +28,13 @@ export default function RegisterForm({
 }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const router = useRouter();
 
-  const { loading, setLoading, setUser } = useGlobalContext();
+  const { setUser } = useGlobalContext();
 
   const handleCloseForm = () => {
     Keyboard.dismiss();
@@ -44,28 +47,49 @@ export default function RegisterForm({
 
   const handleRegister = () => {
     setError('');
-    setLoading(true);
 
     if (email.trim() === '' || !email) {
-      setError('Unesite E-mail adresu!');
-      return;
+      return setError('Unesite E-mail adresu!');
     }
     if (password.trim() === '' || !password) {
-      setError('Unesite lozinku!');
-      return;
+      return setError('Unesite lozinku!');
+    }
+    if (confirmPassword.trim() === '' || !confirmPassword) {
+      return setError('Potvrdite lozinku!');
+    }
+    if (password.trim().length < 8) {
+      return setError('Lozinka mora sadržati bar 8 karaktera!');
+    }
+    if (password.trim() !== confirmPassword.trim()) {
+      return setError('Lozinke se ne slažu!');
     }
 
+    setLoading(true);
     createUserWithEmailAndPassword(auth, email, password)
       .then(async (userCredentials) => {
         const user = userCredentials.user;
-        await setLocalStorage('userDetails', user);
+
+        await setDoc(doc(db, 'users', user.uid), {
+          email: user.email,
+          role: 'demo',
+          createdAt: new Date(),
+        });
+
+        await setLocalStorage('userDetails', {
+          ...user,
+          role: 'demo',
+        });
         setUser({
           uid: userCredentials.user.uid,
           email: userCredentials.user.email!,
+          role: 'demo',
         });
+        setLoading(false);
         router.replace('/(root)/(tabs)');
       })
+
       .catch((error) => {
+        setLoading(false);
         if (error.code === 'auth/email-already-in-use') {
           customAlert(
             'Upozorenje!',
@@ -73,8 +97,6 @@ export default function RegisterForm({
           );
         }
       });
-
-    setLoading(false);
   };
 
   return (
@@ -89,7 +111,6 @@ export default function RegisterForm({
           backgroundColor: 'rgba(0, 0, 0, 0.5)',
         }}
       >
-        {/* Login Form */}
         <Animated.View
           style={{
             transform: [{ translateY: formRegTranslateY }],
@@ -130,6 +151,17 @@ export default function RegisterForm({
               />
             </View>
 
+            <View className='flex flex-row items-center border border-gray-300 rounded-lg p-4 mb-4'>
+              <Feather name='lock' size={24} color='black' />
+              <TextInput
+                placeholder='Potvrda lozinke'
+                secureTextEntry
+                className='pl-4 font-rubik border-none outline-none w-full'
+                value={confirmPassword}
+                onChangeText={(text) => setConfirmPassword(text)}
+              />
+            </View>
+
             {error && (
               <Text className='mb-4 text-danger font-rubik-bold text-md'>
                 {error}
@@ -142,7 +174,9 @@ export default function RegisterForm({
             >
               <Text className='text-lg font-rubik-medium text-center text-white'>
                 {loading ? (
-                  <ActivityIndicator size={'large'} color={'#2867d3'} />
+                  <View className='w-full flex justify-center items-center'>
+                    <ActivityIndicator size={'large'} color={'white'} />
+                  </View>
                 ) : (
                   'Registruj se'
                 )}

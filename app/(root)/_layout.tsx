@@ -20,6 +20,7 @@ export default function AppLayout() {
       setUser({
         uid: userInfo.uid,
         email: userInfo.email,
+        role: userInfo.role,
       });
     }
     setLoading(false);

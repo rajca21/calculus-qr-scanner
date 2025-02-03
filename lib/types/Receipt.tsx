@@ -5,6 +5,7 @@ export interface Receipt {
   userId: string;
   exported: boolean;
   invoiceNumber: string;
+  createdAt: Date;
 }
 
 export interface ReceiptView extends Receipt {

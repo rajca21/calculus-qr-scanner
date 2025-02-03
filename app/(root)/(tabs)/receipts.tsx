@@ -73,6 +73,7 @@ const Receipts = () => {
             userId: doc.data().userId,
             exported: doc.data().exported,
             invoiceNumber: doc.data().invoiceNumber,
+            createdAt: doc.data().createdAt,
             checked: false,
           },
         ]);

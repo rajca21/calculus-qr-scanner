@@ -8,8 +8,7 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import { Feather } from '@expo/vector-icons';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { Feather, MaterialIcons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { signOut, updatePassword } from 'firebase/auth';
 
@@ -98,6 +97,16 @@ const Config = () => {
                 placeholder='Email adresa'
                 className='pl-4 font-rubik border-none outline-none w-full'
                 value={user?.email}
+                editable={false}
+              />
+            </View>
+
+            <View className='flex flex-row items-center border bg-gray-100 border-gray-300 rounded-lg p-4 w-full'>
+              <Feather name='shield' size={24} color='black' />
+              <TextInput
+                placeholder='Prava pristupa'
+                className='pl-4 font-rubik border-none outline-none w-full'
+                value={`Nivo pristupa: ${user?.role ? user.role : 'demo'}`}
                 editable={false}
               />
             </View>
