@@ -94,7 +94,7 @@ export default function ReceiptModal({
       }}
     >
       <View className='flex-1 justify-center items-center bg-[rgba(0,0,0,0.5)]'>
-        <View className='w-[90%] p-6 bg-white rounded-t-lg shadow-md elevation-sm'>
+        <View className='w-[90%] p-6 bg-white rounded-t-lg shadow-md'>
           {scannedReceipt && (
             <RenderHtml contentWidth={1} source={{ html: scannedReceipt }} />
           )}

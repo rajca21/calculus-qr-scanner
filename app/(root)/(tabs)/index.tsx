@@ -64,7 +64,15 @@ export default function Index() {
         setScannedInvoiceNumber(invoiceNumber?.trim());
       }
 
-      const preTagContent = htmlText.match(/<pre[^>]*>[\s\S]*?<\/pre>/i)?.[0];
+      let preTagContent = htmlText.match(/<pre[^>]*>[\s\S]*?<\/pre>/i)?.[0];
+
+      if (preTagContent) {
+        const sanitizedPreTagContent = preTagContent.replace(
+          /<img[^>]*>/gi,
+          ''
+        );
+        preTagContent = sanitizedPreTagContent;
+      }
 
       if (preTagContent) {
         setScannedReceipt(preTagContent);
