@@ -14,13 +14,11 @@ import {
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
-import { signInWithEmailAndPassword } from 'firebase/auth';
-import { doc, getDoc } from 'firebase/firestore';
 
 import { useGlobalContext } from '@/lib/global-provider';
-import { auth, db } from '../lib/firebaseConfig';
 import { setLocalStorage } from '@/lib/localAsyncStorage';
-import { customAlert, hasMaliciousInput } from '@/lib/helpers';
+import { hasMaliciousInput } from '@/lib/helpers';
+import { login } from '@/lib/calculusWS/auhtenticationServices';
 
 export default function LoginForm({
   formTranslateY,
@@ -47,7 +45,7 @@ export default function LoginForm({
     }).start(() => setShowLoginForm(false));
   };
 
-  const handleLogin = () => {
+  const handleLogin = async () => {
     setError('');
 
     if (email.trim() === '' || !email) {
@@ -59,39 +57,16 @@ export default function LoginForm({
     if (hasMaliciousInput(email) || hasMaliciousInput(password)) return;
 
     setLoading(true);
-    signInWithEmailAndPassword(auth, email, password)
-      .then(async (userCredentials) => {
-        const user = userCredentials.user;
-        const userDoc = await getDoc(doc(db, 'users', user.uid));
-        if (userDoc.exists()) {
-          const userData = userDoc.data();
-          setUser({
-            uid: userCredentials.user.uid,
-            email: userCredentials.user.email!,
-            role: userData.role,
-          });
-          await setLocalStorage('userDetails', {
-            ...user,
-            role: userData.role,
-          });
-        } else {
-          return customAlert(
-            'Upozorenje!',
-            'Greška prilikom prikupljanja korisničkih podataka!'
-          );
-        }
-        setLoading(false);
-        router.replace('/(root)/(tabs)');
-      })
-      .catch((error) => {
-        setLoading(false);
-        if (error.code === 'auth/invalid-email') {
-          customAlert('Upozorenje!', 'Unesite validnu e-mail adresu!');
-        }
-        if (error.code === 'auth/invalid-credential') {
-          customAlert('Upozorenje!', 'Pogrešni kredencijali!');
-        }
-      });
+
+    const user = await login(email, password);
+    setUser(user);
+
+    await setLocalStorage('userDetails', {
+      ...user,
+    });
+
+    setLoading(false);
+    router.replace('/(root)/(tabs)');
   };
 
   return (

@@ -1,10 +1,6 @@
 import React, { createContext, useContext, ReactNode, useState } from 'react';
 
-interface User {
-  uid: string;
-  email: string;
-  role: string;
-}
+import { User } from './types/User';
 
 interface GlobalContextType {
   isLoggedIn: boolean;

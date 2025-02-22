@@ -50,16 +50,6 @@ const TabsLayout = () => {
         }}
       />
       <Tabs.Screen
-        name='receipts'
-        options={{
-          title: 'Računi',
-          headerShown: false,
-          tabBarIcon: ({ focused }) => (
-            <TabIcon focused={focused} icon={icons.receipt} />
-          ),
-        }}
-      />
-      <Tabs.Screen
         name='config'
         options={{
           title: 'Postavke',

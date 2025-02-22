@@ -18,9 +18,7 @@ export default function AppLayout() {
     } else {
       setIsLoggedIn(true);
       setUser({
-        uid: userInfo.uid,
-        email: userInfo.email,
-        role: userInfo.role,
+        ...userInfo,
       });
     }
     setLoading(false);

@@ -12,15 +12,10 @@ import {
   Platform,
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { doc, setDoc } from 'firebase/firestore';
 
-import { useGlobalContext } from '@/lib/global-provider';
-import { auth, db } from '../lib/firebaseConfig';
-import { setLocalStorage } from '@/lib/localAsyncStorage';
-import { customAlert, hasMaliciousInput } from '@/lib/helpers';
+import { hasMaliciousInput } from '@/lib/helpers';
+import { register } from '@/lib/calculusWS/auhtenticationServices';
 
 export default function RegisterForm({
   formRegTranslateY,
@@ -35,10 +30,6 @@ export default function RegisterForm({
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const router = useRouter();
-
-  const { setUser } = useGlobalContext();
-
   const handleCloseForm = () => {
     Keyboard.dismiss();
     Animated.timing(formRegTranslateY, {
@@ -48,7 +39,7 @@ export default function RegisterForm({
     }).start(() => setShowRegisterForm(false));
   };
 
-  const handleRegister = () => {
+  const handleRegister = async () => {
     setError('');
 
     if (email.trim() === '' || !email) {
@@ -64,7 +55,7 @@ export default function RegisterForm({
       return setError('Lozinka mora sadržati bar 8 karaktera!');
     }
     if (password.trim() !== confirmPassword.trim()) {
-      return setError('Lozinke se ne slažu!');
+      return setError('Lozinke se ne poklapaju!');
     }
     if (
       hasMaliciousInput(email) ||
@@ -74,38 +65,10 @@ export default function RegisterForm({
       return;
 
     setLoading(true);
-    createUserWithEmailAndPassword(auth, email, password)
-      .then(async (userCredentials) => {
-        const user = userCredentials.user;
 
-        await setDoc(doc(db, 'users', user.uid), {
-          email: user.email,
-          role: 'demo',
-          createdAt: new Date(),
-        });
+    await register(email, password);
 
-        await setLocalStorage('userDetails', {
-          ...user,
-          role: 'demo',
-        });
-        setUser({
-          uid: userCredentials.user.uid,
-          email: userCredentials.user.email!,
-          role: 'demo',
-        });
-        setLoading(false);
-        router.replace('/(root)/(tabs)');
-      })
-
-      .catch((error) => {
-        setLoading(false);
-        if (error.code === 'auth/email-already-in-use') {
-          customAlert(
-            'Upozorenje!',
-            'Korisnik sa ovom e-mail adresom već postoji!'
-          );
-        }
-      });
+    setLoading(false);
   };
 
   return (
