@@ -12,6 +12,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 
 import images from '@/assets/constants/images';
 import { customAlert } from '@/lib/helpers';
+import { useGlobalContext } from '@/lib/global-provider';
 import ReceiptModal from '@/components/modals/ReceiptModal';
 
 export default function Index() {
@@ -23,6 +24,8 @@ export default function Index() {
   const [scannedReceipt, setScannedReceipt] = useState<string>('');
   const [scannedInvoiceNumber, setScannedInvoiceNumber] = useState<string>('');
   const [cameraPermission, requestPermission] = useCameraPermissions();
+
+  const { scannedReceipts } = useGlobalContext();
 
   async function openCamera() {
     if (!cameraPermission || cameraPermission.status !== 'granted') {
@@ -91,6 +94,10 @@ export default function Index() {
     }
   };
 
+  const showReceipts = () => {
+    console.log(scannedReceipts);
+  };
+
   if (cameraOpen) {
     return (
       <CameraView
@@ -115,6 +122,15 @@ export default function Index() {
           color='black'
           onPress={toggleCameraFacing}
         />
+        {scannedReceipts && scannedReceipts.length > 0 && (
+          <Ionicons
+            style={styles.showReceiptsButton}
+            name='receipt-outline'
+            size={24}
+            color='black'
+            onPress={showReceipts}
+          />
+        )}
         <View className='h-screen flex items-center justify-center'>
           <Ionicons name='scan-outline' size={250} color='white' />
           <Text className='text-white absolute text-2xl font-bold'>
@@ -190,5 +206,14 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 10,
     color: 'white',
+  },
+  showReceiptsButton: {
+    position: 'absolute',
+    bottom: 100,
+    left: 20,
+    borderRadius: 20,
+    padding: 10,
+    color: '#2368fd',
+    backgroundColor: 'white',
   },
 });

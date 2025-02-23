@@ -1,6 +1,7 @@
 import React, { createContext, useContext, ReactNode, useState } from 'react';
 
 import { User } from './types/User';
+import { Receipt } from './types/Receipt';
 
 interface GlobalContextType {
   isLoggedIn: boolean;
@@ -9,6 +10,8 @@ interface GlobalContextType {
   setUser: React.Dispatch<React.SetStateAction<User | null>>;
   loading: boolean;
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
+  scannedReceipts: Receipt[];
+  setScannedReceipts: React.Dispatch<React.SetStateAction<Receipt[]>>;
 }
 
 const GlobalContext = createContext<GlobalContextType | undefined>(undefined);
@@ -21,6 +24,7 @@ export const GlobalProvider = ({ children }: GlobalProviderProps) => {
   const [isLoggedIn, setIsLoggedIn] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
+  const [scannedReceipts, setScannedReceipts] = useState([]);
 
   return (
     <GlobalContext.Provider
@@ -31,6 +35,8 @@ export const GlobalProvider = ({ children }: GlobalProviderProps) => {
         setUser,
         loading,
         setLoading,
+        scannedReceipts,
+        setScannedReceipts,
       }}
     >
       {children}

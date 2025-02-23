@@ -7,11 +7,10 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import RenderHtml from 'react-native-render-html';
-import { doc, setDoc } from 'firebase/firestore';
 
-import { db } from '@/lib/firebaseConfig';
 import { customAlert } from '@/lib/helpers';
 import { getLocalStorage } from '@/lib/localAsyncStorage';
+import { useGlobalContext } from '@/lib/global-provider';
 
 export default function ReceiptModal({
   showModal,
@@ -35,6 +34,8 @@ export default function ReceiptModal({
   setScannedInvoiceNumber: (value: React.SetStateAction<string>) => void;
 }) {
   const [loading, setLoading] = useState(false);
+
+  const { scannedReceipts, setScannedReceipts } = useGlobalContext();
 
   const handleClose = () => {
     if (!readOnly) {
@@ -61,14 +62,18 @@ export default function ReceiptModal({
     setLoading(true);
 
     try {
-      await setDoc(doc(db, 'receipts', docId), {
-        url: scannedData,
-        userId: user.uid,
-        scannedReceipt,
-        exported: false,
-        invoiceNumber: scannedInvoiceNumber,
-        createdAt: new Date(),
-      });
+      setScannedReceipts([
+        ...scannedReceipts,
+        {
+          docId: docId,
+          scannedReceipt: scannedReceipt,
+          url: scannedData,
+          userId: user.uid,
+          exported: false,
+          invoiceNumber: scannedInvoiceNumber,
+          createdAt: new Date(),
+        },
+      ]);
 
       customAlert('Obaveštenje', 'Uspešno učitan račun.');
 
