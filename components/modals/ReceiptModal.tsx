@@ -61,6 +61,19 @@ export default function ReceiptModal({
 
     setLoading(true);
 
+    const existingReceipt = scannedReceipts.some(
+      (receipt) => receipt.invoiceNumber === scannedInvoiceNumber
+    );
+    if (existingReceipt) {
+      customAlert('Obaveštenje', 'Ovaj račun je već učitan!');
+      setLoading(false);
+      setScanned(false);
+      setScannedData('');
+      setScannedInvoiceNumber('');
+      setShowModal(false);
+      return;
+    }
+
     try {
       setScannedReceipts([
         ...scannedReceipts,

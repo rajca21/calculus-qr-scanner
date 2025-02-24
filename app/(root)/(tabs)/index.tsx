@@ -14,10 +14,12 @@ import images from '@/assets/constants/images';
 import { customAlert } from '@/lib/helpers';
 import { useGlobalContext } from '@/lib/global-provider';
 import ReceiptModal from '@/components/modals/ReceiptModal';
+import ReceiptsListModal from '@/components/modals/ReceiptsListModal';
 
 export default function Index() {
   const [facing, setFacing] = useState<CameraType>('back');
   const [cameraOpen, setCameraOpen] = useState(false);
+  const [receiptsVisible, setReceiptsVisible] = useState(false);
   const [scanned, setScanned] = useState(false);
   const [scannedData, setScannedData] = useState<string>('');
   const [showModal, setShowModal] = useState<boolean>(false);
@@ -52,6 +54,11 @@ export default function Index() {
     }
     setScanned(true);
     setScannedData(url);
+  };
+
+  const dismiss = () => {
+    setScanned(false);
+    setScannedData('');
   };
 
   const handleReadBarcode = async () => {
@@ -94,10 +101,6 @@ export default function Index() {
     }
   };
 
-  const showReceipts = () => {
-    console.log(scannedReceipts);
-  };
-
   if (cameraOpen) {
     return (
       <CameraView
@@ -123,13 +126,19 @@ export default function Index() {
           onPress={toggleCameraFacing}
         />
         {scannedReceipts && scannedReceipts.length > 0 && (
-          <Ionicons
-            style={styles.showReceiptsButton}
-            name='receipt-outline'
-            size={24}
-            color='black'
-            onPress={showReceipts}
-          />
+          <>
+            <Ionicons
+              style={styles.showReceiptsButton}
+              name='receipt-outline'
+              size={24}
+              color='black'
+              onPress={() => setReceiptsVisible(true)}
+            />
+            <ReceiptsListModal
+              receiptsVisible={receiptsVisible}
+              setReceiptsVisible={setReceiptsVisible}
+            />
+          </>
         )}
         <View className='h-screen flex items-center justify-center'>
           <Ionicons name='scan-outline' size={250} color='white' />
@@ -138,12 +147,12 @@ export default function Index() {
           </Text>
         </View>
         {scanned && (
-          <TouchableOpacity
-            className='relative bottom-60 self-center bg-primary-300 rounded-md px-4 py-2'
-            onPress={handleReadBarcode}
-          >
-            <Text className='text-white'>Prikaži skenirani račun</Text>
-          </TouchableOpacity>
+          <View className='relative bottom-60 self-center bg-primary-300 rounded-md px-4 py-2 flex flex-row items-center gap-2'>
+            <TouchableOpacity onPress={handleReadBarcode}>
+              <Text className='text-white'>Prikaži skenirani račun</Text>
+            </TouchableOpacity>
+            <AntDesign name='close' size={18} color='white' onPress={dismiss} />
+          </View>
         )}
 
         {showModal && (
