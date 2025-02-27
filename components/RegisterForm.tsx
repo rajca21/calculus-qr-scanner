@@ -12,7 +12,11 @@ import {
   Platform,
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { Feather } from '@expo/vector-icons';
+import {
+  Feather,
+  MaterialCommunityIcons,
+  FontAwesome6,
+} from '@expo/vector-icons';
 
 import { hasMaliciousInput } from '@/lib/helpers';
 import { register } from '@/lib/calculusWS/auhtenticationServices';
@@ -27,6 +31,9 @@ export default function RegisterForm({
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [pib, setPib] = useState('');
+  const [companyName, setCompanyName] = useState('');
+  const [contact, setContact] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -42,6 +49,14 @@ export default function RegisterForm({
   const handleRegister = async () => {
     setError('');
 
+    if (
+      hasMaliciousInput(email) ||
+      hasMaliciousInput(password) ||
+      hasMaliciousInput(confirmPassword) ||
+      hasMaliciousInput(pib) ||
+      hasMaliciousInput(companyName)
+    )
+      return;
     if (email.trim() === '' || !email) {
       return setError('Unesite E-mail adresu!');
     }
@@ -57,16 +72,16 @@ export default function RegisterForm({
     if (password.trim() !== confirmPassword.trim()) {
       return setError('Lozinke se ne poklapaju!');
     }
-    if (
-      hasMaliciousInput(email) ||
-      hasMaliciousInput(password) ||
-      hasMaliciousInput(confirmPassword)
-    )
-      return;
+    if (pib.trim() === '' || !pib) {
+      return setError('Unesite PIB firme');
+    }
+    if (companyName.trim() === '' || !companyName) {
+      return setError('Unesite naziv firme');
+    }
 
     setLoading(true);
 
-    await register(email, password);
+    await register(email, password, pib, companyName, contact);
 
     setLoading(false);
   };
@@ -90,7 +105,7 @@ export default function RegisterForm({
               position: 'absolute',
               bottom: 0,
               width: '100%',
-              height: '50%',
+              height: '80%',
               backgroundColor: '#fff',
               borderTopLeftRadius: 24,
               borderTopRightRadius: 24,
@@ -110,7 +125,7 @@ export default function RegisterForm({
                   <View className='flex flex-row items-center border border-gray-300 rounded-lg p-4 mb-4'>
                     <Feather name='mail' size={24} color='black' />
                     <TextInput
-                      placeholder='Email adresa'
+                      placeholder='Email adresa *'
                       className='pl-4 font-rubik border-none outline-none w-full'
                       textContentType='emailAddress'
                       value={email}
@@ -122,7 +137,7 @@ export default function RegisterForm({
                   <View className='flex flex-row items-center border border-gray-300 rounded-lg p-4 mb-4'>
                     <Feather name='lock' size={24} color='black' />
                     <TextInput
-                      placeholder='Lozinka'
+                      placeholder='Lozinka *'
                       secureTextEntry
                       textContentType='oneTimeCode'
                       className='pl-4 font-rubik border-none outline-none w-full'
@@ -134,12 +149,56 @@ export default function RegisterForm({
                   <View className='flex flex-row items-center border border-gray-300 rounded-lg p-4 mb-4'>
                     <Feather name='lock' size={24} color='black' />
                     <TextInput
-                      placeholder='Potvrda lozinke'
+                      placeholder='Potvrda lozinke *'
                       secureTextEntry
                       textContentType='oneTimeCode'
                       className='pl-4 font-rubik border-none outline-none w-full'
                       value={confirmPassword}
                       onChangeText={(text) => setConfirmPassword(text)}
+                    />
+                  </View>
+
+                  <View className='flex flex-row items-center border border-gray-300 rounded-lg p-4 mb-4'>
+                    <MaterialCommunityIcons
+                      name='office-building-outline'
+                      size={24}
+                      color='black'
+                    />
+                    <TextInput
+                      placeholder='PIB *'
+                      secureTextEntry
+                      textContentType='oneTimeCode'
+                      className='pl-4 font-rubik border-none outline-none w-full'
+                      value={pib}
+                      onChangeText={(text) => setPib(text)}
+                    />
+                  </View>
+
+                  <View className='flex flex-row items-center border border-gray-300 rounded-lg p-4 mb-4'>
+                    <MaterialCommunityIcons
+                      name='office-building-outline'
+                      size={24}
+                      color='black'
+                    />
+                    <TextInput
+                      placeholder='Naziv firme *'
+                      secureTextEntry
+                      textContentType='oneTimeCode'
+                      className='pl-4 font-rubik border-none outline-none w-full'
+                      value={companyName}
+                      onChangeText={(text) => setCompanyName(text)}
+                    />
+                  </View>
+
+                  <View className='flex flex-row items-center border border-gray-300 rounded-lg p-4 mb-4'>
+                    <FontAwesome6 name='contact-book' size={24} color='black' />
+                    <TextInput
+                      placeholder='Kontakt telefon/email adresa'
+                      secureTextEntry
+                      textContentType='oneTimeCode'
+                      className='pl-4 font-rubik border-none outline-none w-full'
+                      value={contact}
+                      onChangeText={(text) => setContact(text)}
                     />
                   </View>
 

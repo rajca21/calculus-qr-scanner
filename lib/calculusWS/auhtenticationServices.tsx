@@ -26,7 +26,13 @@ export const login = async (
   return foundUser;
 };
 
-export const register = async (email: string, password: string) => {
+export const register = async (
+  email: string,
+  password: string,
+  pib: string,
+  companyName: string,
+  contact: string
+) => {
   const foundUser = dummyDataUsers.find((user) => user.email === email);
 
   if (foundUser) {
