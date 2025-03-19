@@ -1,3 +1,5 @@
+import { XMLParser } from 'fast-xml-parser';
+
 import { customAlert } from '../helpers';
 
 // # Funkcija za formatiranje ulaznih parametara metode WS
@@ -73,4 +75,15 @@ export const getResultFromXMLRecordForMethodName = (
   const regex = new RegExp(resultTag, 's');
   const match = bodyContent.match(regex);
   return match ? match[1].trim() : null;
+};
+
+export const parseXMLToJson = (xml: string): any => {
+  const parser = new XMLParser({
+    ignoreAttributes: false, // Keep attributes
+    attributeNamePrefix: '', // No prefix for attributes
+    removeNSPrefix: true, // Remove namespace prefixes
+    parseTagValue: false, // Force values to remain as strings
+  });
+
+  return parser.parse(xml);
 };

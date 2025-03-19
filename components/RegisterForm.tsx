@@ -18,7 +18,7 @@ import {
   FontAwesome6,
 } from '@expo/vector-icons';
 
-import { hasMaliciousInput } from '@/lib/helpers';
+import { customAlert, hasMaliciousInput } from '@/lib/helpers';
 import { register } from '@/lib/calculusWS/auhtenticationServices';
 
 export default function RegisterForm({
@@ -81,9 +81,15 @@ export default function RegisterForm({
 
     setLoading(true);
 
-    await register(email, password, pib, companyName, contact);
+    const res = await register(email, password, pib, companyName, contact);
 
     setLoading(false);
+    if (res === 'success') {
+      customAlert(
+        'Obaveštenje',
+        'Vaš nalog je uspešno kreiran. Bićete kontaktirani od strane korisničke podrške za aktivaciju naloga'
+      );
+    }
   };
 
   return (

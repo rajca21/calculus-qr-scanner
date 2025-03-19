@@ -19,6 +19,7 @@ import { router } from 'expo-router';
 import { useGlobalContext } from '@/lib/global-provider';
 import { removeLocalStorage } from '@/lib/localAsyncStorage';
 import { customAlert } from '@/lib/helpers';
+import { logout } from '@/lib/calculusWS/auhtenticationServices';
 
 const Config = () => {
   const { user, setUser, setIsLoggedIn } = useGlobalContext();
@@ -26,15 +27,20 @@ const Config = () => {
   const [newPassword, setNewPassword] = useState('');
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
   const [contact, setContact] = useState(user?.contact || '');
+  const [selectedDB, setSelectedDB] = useState(user?.selectedDB || '');
   const [loading, setLoading] = useState(false);
 
   const handleLogout = async () => {
     setLoading(true);
-    await removeLocalStorage();
-    setUser(null);
-    setIsLoggedIn(false);
+    const res = await logout(user.uid, user.sessionToken);
+    if (res === 'success') {
+      await removeLocalStorage();
+      setUser(null);
+      setIsLoggedIn(false);
+      setLoading(false);
+      router.replace('/sign-in');
+    }
     setLoading(false);
-    router.replace('/sign-in');
   };
 
   const handleUpdateData = async () => {
@@ -99,31 +105,21 @@ const Config = () => {
               {/* TODO: */}
               {/* Serijski brojevi baze - izbor baze za učitavanje računa */}
               <View className='flex flex-row items-center border border-gray-300 rounded-lg p-4 w-full'>
-                <Feather name='mail' size={24} color='black' />
-                <TextInput
-                  placeholder='Email adresa'
-                  className='pl-4 font-rubik border-none outline-none w-full'
-                  value={user?.email}
-                  editable={false}
-                />
-              </View>
-
-              <View className='border-b-gray-300 border-b'></View>
-
-              {/* PIB - zabranjena promena */}
-              <View className='flex flex-row items-center border bg-gray-100 border-gray-300 rounded-lg p-4 w-full'>
                 <MaterialCommunityIcons
-                  name='office-building-outline'
+                  name='database-arrow-left-outline'
                   size={24}
                   color='black'
                 />
                 <TextInput
-                  placeholder='PIB'
+                  placeholder='Serijski broj baze'
                   className='pl-4 font-rubik border-none outline-none w-full'
-                  value={user?.pib}
+                  value={selectedDB}
                   editable={false}
+                  onChangeText={(text) => setSelectedDB(text)}
                 />
               </View>
+
+              <View className='border-b-gray-300 border-b'></View>
 
               {/* Naziv firme - zabranjena promena */}
               <View className='flex flex-row items-center border bg-gray-100 border-gray-300 rounded-lg p-4 w-full'>
@@ -190,7 +186,7 @@ const Config = () => {
               </View>
             </ScrollView>
 
-            <View className='flex flex-col gap-5 mb-24'>
+            <View className='flex flex-col gap-5 mb-24 mt-5'>
               <TouchableOpacity
                 disabled={loading}
                 onPress={handleUpdateData}

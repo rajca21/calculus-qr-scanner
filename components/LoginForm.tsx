@@ -17,7 +17,7 @@ import { Feather } from '@expo/vector-icons';
 
 import { useGlobalContext } from '@/lib/global-provider';
 import { setLocalStorage } from '@/lib/localAsyncStorage';
-import { hasMaliciousInput } from '@/lib/helpers';
+import { customAlert, hasMaliciousInput } from '@/lib/helpers';
 import { login } from '@/lib/calculusWS/auhtenticationServices';
 
 export default function LoginForm({
@@ -34,7 +34,7 @@ export default function LoginForm({
 
   const router = useRouter();
 
-  const { setUser } = useGlobalContext();
+  const { setUser, setIsLoggedIn } = useGlobalContext();
 
   const handleCloseForm = () => {
     Keyboard.dismiss();
@@ -59,14 +59,23 @@ export default function LoginForm({
     setLoading(true);
 
     const user = await login(email, password);
-    setUser(user);
 
-    await setLocalStorage('userDetails', {
-      ...user,
-    });
-
-    setLoading(false);
-    router.replace('/(root)/(tabs)');
+    if (user) {
+      if (!user.verified) {
+        setLoading(false);
+        return customAlert(
+          'Upozorenje!',
+          'Vaš nalog nije verifikovan. Obratite se korisničkoj podršci'
+        );
+      }
+      setUser(user);
+      await setLocalStorage('userDetails', {
+        ...user,
+      });
+      setLoading(false);
+      setIsLoggedIn(true);
+      router.replace('/(root)/(tabs)');
+    }
   };
 
   return (
@@ -139,15 +148,17 @@ export default function LoginForm({
                     onPress={handleLogin}
                     className='bg-primary-500 py-3 rounded-lg'
                   >
-                    <Text className='text-lg font-rubik-medium text-center text-white'>
+                    <View>
                       {loading ? (
                         <View className='w-full flex justify-center items-center'>
                           <ActivityIndicator size={'large'} color={'white'} />
                         </View>
                       ) : (
-                        'Uloguj se'
+                        <Text className='text-lg font-rubik-medium text-center text-white'>
+                          Uloguj se
+                        </Text>
                       )}
-                    </Text>
+                    </View>
                   </TouchableOpacity>
                 </View>
               </KeyboardAwareScrollView>
