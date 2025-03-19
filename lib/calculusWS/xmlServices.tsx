@@ -1,13 +1,50 @@
-// ### Parametri zahteva koji se šalju do Web Servisa ###
-export const soapBody = `<?xml version="1.0" encoding="utf-8"?>
+import { customAlert } from '../helpers';
+
+// # Funkcija za formatiranje ulaznih parametara metode WS
+const keysValuesBuilder = (keys: string[], values: string[]) => {
+  let keysValuesBody = '';
+  keys.forEach((key, index) => {
+    keysValuesBody += `<${key}>${values[index]}</${key}>\n`;
+  });
+  return keysValuesBody;
+};
+
+// # Funkcija za formatiranje okvira metode za telo metode WS
+const methodWrapperBuilder = (
+  method: string,
+  keys: string[] = [],
+  values: string[] = []
+) => {
+  if (keys.length > 0) {
+    return `<${method} xmlns="http://tempuri.org/">
+      ${keysValuesBuilder(keys, values)}</${method}>`;
+  } else {
+    return `<${method} xmlns="http://tempuri.org/" />`;
+  }
+};
+
+// ### Funkcija za formatiranje tela (body) metode WS
+export const soapBodyBuilder = (
+  method: string,
+  keys: string[] = [],
+  values: string[] = []
+) => {
+  if (keys.length !== values.length) {
+    return customAlert('Greška', `Greška u parametrima za metodu ${method}`);
+  }
+
+  return `<?xml version="1.0" encoding="utf-8"?>
   <soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
     <soap:Body>
-      <ServiceInfo xmlns="http://www.calculus.rs/webservices/" />
+     ${methodWrapperBuilder(method, keys, values)}
     </soap:Body>
   </soap:Envelope>`;
+};
+
+// ## Header-i zahteva
 export const contentType = 'text/xml; charset=utf-8';
 export const getSoapAction = (methodName: string): string => {
-  return `"http://www.calculus.rs/webservices/${methodName}"`;
+  return `"http://tempuri.org/${methodName}"`;
 };
 
 // ### Funkcija za parsiranje XML odgovora (soap:Body dela) ###

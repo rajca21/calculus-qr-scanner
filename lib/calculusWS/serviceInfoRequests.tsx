@@ -4,101 +4,78 @@ import {
   getResultFromXMLRecordForMethodName,
   getSoapAction,
   parseXMLWithRegex,
-  soapBody,
+  soapBodyBuilder,
 } from '../calculusWS/xmlServices';
 import { customAlert } from '../helpers';
 
-export const firstService =
-  'http://89.216.22.118/CalculusPop97WS/CalculusPop97WS.asmx';
-export const secondService =
-  'http://79.175.123.183/CalculusPop97WS/CalculusPop97WS.asmx';
+export const wsUrl = 'http://192.168.0.114/ClcWS/CalculusWebService.asmx';
 
 /**
- * @route   POST http://{firstService|secondService}/CalculusPop97WS/CalculusPop97WS.asmx
- * @desc    Pronalazi dostupan servis, prvo poziva prvi, zatim drugi i vraća onaj koji je dostupan
- * @name    ServisJeDostupan
+ * @route   POST http://{ipAddress}/ClcWS/CalculusWebService.asmx
+ * @desc    Vraća datum i vreme Web servera - metoda za test
+ * @name    DatumVremeWebServera
  */
-export const getAvailableService = async (): Promise<string> => {
+export const dateTimeWebServer = async (): Promise<string | null> => {
   try {
-    let { data } = await axios.post(firstService, soapBody, {
-      headers: {
-        'Content-Type': contentType,
-        'SOAPAction': getSoapAction('ServisJeDostupan'),
-      },
-    });
+    let { data } = await axios.post(
+      wsUrl,
+      soapBodyBuilder('DatumVremeWebServera'),
+      {
+        headers: {
+          'Content-Type': contentType,
+          SOAPAction: getSoapAction('DatumVremeWebServera'),
+        },
+      }
+    );
+
     let xmlRecord = parseXMLWithRegex(data);
     let result = getResultFromXMLRecordForMethodName(
-      'ServisJeDostupan',
+      'DatumVremeWebServera',
       xmlRecord
     );
-    if (result === 'true') {
-      return firstService;
-    } else {
-      let { data } = await axios.post(secondService, soapBody, {
-        headers: {
-          'Content-Type': contentType,
-          'SOAPAction': getSoapAction('ServisJeDostupan'),
-        },
-      });
-      let xmlRecord = parseXMLWithRegex(data);
-      let result = getResultFromXMLRecordForMethodName(
-        'ServisJeDostupan',
-        xmlRecord
-      );
 
-      if (result === 'true') {
-        return secondService;
-      } else {
-        return '';
-      }
+    if (result === null) {
+      throw new Error('');
     }
+
+    return result;
   } catch (error) {
-    try {
-      let { data } = await axios.post(secondService, soapBody, {
-        headers: {
-          'Content-Type': contentType,
-          'SOAPAction': getSoapAction('ServisJeDostupan'),
-        },
-      });
-      let xmlRecord = parseXMLWithRegex(data);
-      let result = getResultFromXMLRecordForMethodName(
-        'ServisJeDostupan',
-        xmlRecord
-      );
-
-      if (result === 'true') {
-        return secondService;
-      }
-    } catch (error) {
-      customAlert('Greška', 'Greška prilikom povlaćenja dostupnog servisa');
-      return '';
-    }
+    customAlert('Greška', 'Greška prilikom pokretanja Web servera');
+    return null;
   }
 };
 
 /**
- * @route   POST http://{avaiableService}/CalculusPop97WS/CalculusPop97WS.asmx
- * @desc    Vraća podatke o servisu
- * @name    ServiceInfo
+ * @route   POST http://{ipAddress}/ClcWS/CalculusWebService.asmx
+ * @desc    Vraća datum i vreme DB servera - metoda za test
+ * @name    DatumVremeDBServera
  */
-export const getServiceInfo = async (): Promise<string | null> => {
+export const dateTimeDBServer = async (): Promise<string | null> => {
   try {
-    const availableService = await getAvailableService();
-    if (availableService === '') {
-      throw new Error('Greška prilikom povlačenja dostupnog servisa');
+    let { data } = await axios.post(
+      wsUrl,
+      soapBodyBuilder('DatumVremeDBServera'),
+      {
+        headers: {
+          'Content-Type': contentType,
+          SOAPAction: getSoapAction('DatumVremeDBServera'),
+        },
+      }
+    );
+
+    let xmlRecord = parseXMLWithRegex(data);
+    let result = getResultFromXMLRecordForMethodName(
+      'DatumVremeDBServera',
+      xmlRecord
+    );
+
+    if (result === null) {
+      throw new Error('');
     }
 
-    let { data } = await axios.post(secondService, soapBody, {
-      headers: {
-        'Content-Type': contentType,
-        'SOAPAction': getSoapAction('ServiceInfo'),
-      },
-    });
-    let xmlRecord = parseXMLWithRegex(data);
-    let result = getResultFromXMLRecordForMethodName('ServiceInfo', xmlRecord);
     return result;
   } catch (error) {
-    customAlert('Greška', 'Greška prilikom povlaćenja informacija o servisu');
+    customAlert('Greška', 'Greška prilikom pokretanja DB servera');
     return null;
   }
 };
