@@ -24,6 +24,7 @@ import {
   resetPassword,
   updateProfileInfo,
 } from '@/lib/calculusWS/auhtenticationServices';
+import DatabaseSelector from '@/components/DatabaseSelector';
 
 const Config = () => {
   const { user, setUser, setIsLoggedIn } = useGlobalContext();
@@ -142,22 +143,8 @@ const Config = () => {
                 />
               </View>
 
-              {/* TODO: */}
               {/* Serijski brojevi baze - izbor baze za učitavanje računa */}
-              <View className='flex flex-row items-center border border-gray-300 rounded-lg p-4 w-full'>
-                <MaterialCommunityIcons
-                  name='database-arrow-left-outline'
-                  size={24}
-                  color='black'
-                />
-                <TextInput
-                  placeholder='Serijski broj baze'
-                  className='pl-4 font-rubik border-none outline-none w-full'
-                  value={selectedDB}
-                  editable={false}
-                  onChangeText={(text) => setSelectedDB(text)}
-                />
-              </View>
+              <DatabaseSelector />
 
               <View className='border-b-gray-300 border-b'></View>
 
@@ -242,7 +229,7 @@ const Config = () => {
                 onPress={handleLogout}
                 className='bg-danger border-2 border-danger flex flex-row items-center justify-center rounded-full gap-2 py-2'
               >
-                <Text className='text-lg font-rubik-medium text-center  text-white'>
+                <Text className='text-lg font-rubik-medium text-center text-white'>
                   Izloguj se
                 </Text>
                 <MaterialIcons name='logout' size={20} color='#ffffff' />
