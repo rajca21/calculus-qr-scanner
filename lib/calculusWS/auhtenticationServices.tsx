@@ -222,3 +222,119 @@ export const getUserById = async (
     return null;
   }
 };
+
+/**
+ * @route   POST http://{ipAddress}/ClcWS/CalculusWebService.asmx
+ * @desc    Izmena lozinke
+ * @name    AzurWebQRScanKorisnik
+ */
+export const resetPassword = async (
+  korisniksk: string,
+  sessionToken: string,
+  password: string,
+  newPassword: string
+): Promise<string | null> => {
+  try {
+    let { data } = await axios.post(
+      wsUrl,
+      soapBodyBuilder(
+        'AzurWebQRScanKorisnik',
+        [
+          'korisniksk',
+          'email',
+          'lozinka',
+          'novalozinka',
+          'pib',
+          'nazivfirme',
+          'kontakt',
+          'token',
+          'tipazur',
+        ],
+        [korisniksk, '', password, newPassword, '', '', '', sessionToken, 'R']
+      ),
+      {
+        headers: {
+          'Content-Type': contentType,
+          SOAPAction: getSoapAction('AzurWebQRScanKorisnik'),
+        },
+      }
+    );
+
+    const uidJsonData = parseXMLToJson(data);
+    const uid =
+      uidJsonData.Envelope?.Body?.AzurWebQRScanKorisnikResponse
+        ?.AzurWebQRScanKorisnikResult;
+
+    if (
+      uid ===
+      'ERROR [HY000] [Sybase][ODBC Driver][SQL Anywhere]User-defined exception signaled'
+    ) {
+      customAlert(
+        'Greška',
+        'Greška prilikom izmene lozinke! Da li ste uneli ispravnu trenutnu lozinku?'
+      );
+      return null;
+    }
+
+    return 'success';
+  } catch (error) {
+    customAlert('Greška', 'Greška prilikom izmene lozinke!');
+    return null;
+  }
+};
+
+/**
+ * @route   POST http://{ipAddress}/ClcWS/CalculusWebService.asmx
+ * @desc    Ažuriranje informacija o profilu
+ * @name    AzurWebQRScanKorisnik
+ */
+export const updateProfileInfo = async (
+  korisniksk: string,
+  sessionToken: string,
+  contact: string
+): Promise<string | null> => {
+  try {
+    let { data } = await axios.post(
+      wsUrl,
+      soapBodyBuilder(
+        'AzurWebQRScanKorisnik',
+        [
+          'korisniksk',
+          'email',
+          'lozinka',
+          'novalozinka',
+          'pib',
+          'nazivfirme',
+          'kontakt',
+          'token',
+          'tipazur',
+        ],
+        [korisniksk, '', '', '', '', '', contact, sessionToken, 'P']
+      ),
+      {
+        headers: {
+          'Content-Type': contentType,
+          SOAPAction: getSoapAction('AzurWebQRScanKorisnik'),
+        },
+      }
+    );
+
+    const uidJsonData = parseXMLToJson(data);
+    const uid =
+      uidJsonData.Envelope?.Body?.AzurWebQRScanKorisnikResponse
+        ?.AzurWebQRScanKorisnikResult;
+
+    if (
+      uid ===
+      'ERROR [HY000] [Sybase][ODBC Driver][SQL Anywhere]User-defined exception signaled'
+    ) {
+      customAlert('Greška', 'Greška prilikom ažuriranja podataka!');
+      return null;
+    }
+
+    return 'success';
+  } catch (error) {
+    customAlert('Greška', 'Greška prilikom ažuriranja podataka!');
+    return null;
+  }
+};

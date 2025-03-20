@@ -17,9 +17,13 @@ import {
 import { router } from 'expo-router';
 
 import { useGlobalContext } from '@/lib/global-provider';
-import { removeLocalStorage } from '@/lib/localAsyncStorage';
+import { removeLocalStorage, setLocalStorage } from '@/lib/localAsyncStorage';
 import { customAlert } from '@/lib/helpers';
-import { logout } from '@/lib/calculusWS/auhtenticationServices';
+import {
+  logout,
+  resetPassword,
+  updateProfileInfo,
+} from '@/lib/calculusWS/auhtenticationServices';
 
 const Config = () => {
   const { user, setUser, setIsLoggedIn } = useGlobalContext();
@@ -43,6 +47,22 @@ const Config = () => {
     setLoading(false);
   };
 
+  const updateUserInfo = async () => {
+    const res = await updateProfileInfo(user.uid, user.sessionToken, contact);
+    if (res === 'success') {
+      setUser({
+        ...user,
+        contact: contact,
+      });
+      await setLocalStorage('userDetails', {
+        ...user,
+        contact: contact,
+      });
+      customAlert('Obaveštenje', 'Profil uspešno ažuriran');
+    }
+    return res;
+  };
+
   const handleUpdateData = async () => {
     setLoading(true);
     let changeArray = [
@@ -62,7 +82,7 @@ const Config = () => {
     }
 
     if (passwordChangeArray.every((value) => value === '')) {
-      // Ažuriranje samo kontakta
+      await updateUserInfo();
       return setLoading(false);
     }
 
@@ -73,7 +93,27 @@ const Config = () => {
       );
       return setLoading(false);
     } else {
-      // Ažuriranje lozinke i kontakta
+      if (newPassword !== confirmNewPassword) {
+        console.log('!!');
+        customAlert('Greška', 'Lozinke se ne poklapaju!');
+        return setLoading(false);
+      }
+
+      const res = await resetPassword(
+        user.uid,
+        user.sessionToken,
+        currentPassword,
+        newPassword
+      );
+
+      if (res === 'success') {
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmNewPassword('');
+        customAlert('Obaveštenje', 'Uspešno izmenjena lozinka');
+      }
+      await updateUserInfo();
+
       setLoading(false);
     }
   };
