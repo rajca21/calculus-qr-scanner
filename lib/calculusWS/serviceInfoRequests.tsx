@@ -5,13 +5,12 @@ import {
   getSoapAction,
   parseXMLWithRegex,
   soapBodyBuilder,
+  wsUrl,
 } from '../calculusWS/xmlServices';
 import { customAlert } from '../helpers';
 
-export const wsUrl = 'http://192.168.0.114/ClcWS/CalculusWebService.asmx';
-
 /**
- * @route   POST http://{ipAddress}/ClcWS/CalculusWebService.asmx
+ * @route   POST http://{ipAddress}/CWSFiskaliQR/CalculusWebService.asmx
  * @desc    Vraća datum i vreme Web servera - metoda za test
  * @name    DatumVremeWebServera
  */
@@ -46,7 +45,7 @@ export const dateTimeWebServer = async (): Promise<string | null> => {
 };
 
 /**
- * @route   POST http://{ipAddress}/ClcWS/CalculusWebService.asmx
+ * @route   POST http://{ipAddress}/CWSFiskaliQR/CalculusWebService.asmx
  * @desc    Vraća datum i vreme DB servera - metoda za test
  * @name    DatumVremeDBServera
  */

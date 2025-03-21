@@ -1,16 +1,16 @@
 import axios from 'axios';
 import { User } from '../types/User';
 import { customAlert } from '../helpers';
-import { wsUrl } from './serviceInfoRequests';
 import {
   contentType,
   getSoapAction,
   parseXMLToJson,
   soapBodyBuilder,
+  wsUrl,
 } from './xmlServices';
 
 /**
- * @route   POST http://{ipAddress}/ClcWS/CalculusWebService.asmx
+ * @route   POST http://{ipAddress}/CWSFiskaliQR/CalculusWebService.asmx
  * @desc    Logovanje korisnika
  * @name    AzurWebQRScanKorisnik
  */
@@ -65,7 +65,7 @@ export const login = async (
 };
 
 /**
- * @route   POST http://{ipAddress}/ClcWS/CalculusWebService.asmx
+ * @route   POST http://{ipAddress}/CWSFiskaliQR/CalculusWebService.asmx
  * @desc    Logout korisnika
  * @name    AzurWebQRScanKorisnik
  */
@@ -120,7 +120,7 @@ export const logout = async (
 };
 
 /**
- * @route   POST http://{ipAddress}/ClcWS/CalculusWebService.asmx
+ * @route   POST http://{ipAddress}/CWSFiskaliQR/CalculusWebService.asmx
  * @desc    Registracija korisnika
  * @name    UbaciWebQRScanKorisnik
  */
@@ -169,7 +169,7 @@ export const register = async (
 };
 
 /**
- * @route   POST http://{ipAddress}/ClcWS/CalculusWebService.asmx
+ * @route   POST http://{ipAddress}/CWSFiskaliQR/CalculusWebService.asmx
  * @desc    Vraća podatke o korisniku
  * @name    DajWebQRScanKorisnik
  */
@@ -224,7 +224,7 @@ export const getUserById = async (
 };
 
 /**
- * @route   POST http://{ipAddress}/ClcWS/CalculusWebService.asmx
+ * @route   POST http://{ipAddress}/CWSFiskaliQR/CalculusWebService.asmx
  * @desc    Izmena lozinke
  * @name    AzurWebQRScanKorisnik
  */
@@ -284,7 +284,7 @@ export const resetPassword = async (
 };
 
 /**
- * @route   POST http://{ipAddress}/ClcWS/CalculusWebService.asmx
+ * @route   POST http://{ipAddress}/CWSFiskaliQR/CalculusWebService.asmx
  * @desc    Ažuriranje informacija o profilu
  * @name    AzurWebQRScanKorisnik
  */
