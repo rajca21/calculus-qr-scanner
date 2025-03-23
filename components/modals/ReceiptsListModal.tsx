@@ -6,12 +6,15 @@ import {
   StyleSheet,
   TouchableOpacity,
   FlatList,
+  ActivityIndicator,
 } from 'react-native';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { useGlobalContext } from '@/lib/global-provider';
 import { Receipt } from '@/lib/types/Receipt';
+import { customAlert } from '@/lib/helpers';
+import { exportReceipts } from '@/lib/calculusWS/receiptServices';
 import ReceiptCard from '../cards/ReceiptCard';
 import ReceiptModal from './ReceiptsViewModal';
 
@@ -24,15 +27,51 @@ export default function ReceiptsListModal({
 }) {
   const [currentReceipt, setCurrentReceipt] = useState<Receipt | null>(null);
   const [showReceiptModal, setShowReceiptModal] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
 
-  const { scannedReceipts, setScannedReceipts } = useGlobalContext();
+  const { user, scannedReceipts, setScannedReceipts } = useGlobalContext();
 
-  const exportReceipts = async () => {
-    // Calculus WS
+  const exportScannedReceipts = async () => {
+    setLoading(true);
+    let urls = scannedReceipts
+      .map((receipt) => receipt.url)
+      .filter((url) => url)
+      .join(',');
 
-    console.log(scannedReceipts);
-    setScannedReceipts([]);
-    setReceiptsVisible(false);
+    if (!urls) {
+      return customAlert('Greška', 'Nema računa za učitavanje!');
+    }
+    if (!user.selectedDB) {
+      return customAlert('Greška', 'Nije definisana baza za izvoz!');
+    }
+    if (!user.sessionToken) {
+      return customAlert(
+        'Greška',
+        'Greška autentikacije. Ulogujte se i pokušajte ponovo.'
+      );
+    }
+
+    setLoading(true);
+
+    try {
+      const res = await exportReceipts(
+        user.selectedDB,
+        urls,
+        user.uid,
+        user.sessionToken
+      );
+
+      setLoading(false);
+
+      if (res === 'success') {
+        customAlert('Obaveštenje', 'Uspešno izvezeni računi');
+        setScannedReceipts([]);
+        setReceiptsVisible(false);
+      }
+    } catch (error) {
+      console.log(error);
+      setLoading(false);
+    }
   };
 
   return (
@@ -73,11 +112,21 @@ export default function ReceiptsListModal({
             />
           </GestureHandlerRootView>
           <TouchableOpacity
-            onPress={exportReceipts}
+            onPress={exportScannedReceipts}
             className='mb-10 bg-primary-500 w-full p-3 rounded-full'
           >
             <Text className='text-center text-white font-bold text-lg'>
-              Učitaj račune
+              {loading ? (
+                <View className='w-full flex items-center justify-center'>
+                  <ActivityIndicator
+                    className='text-center'
+                    size={'small'}
+                    color={'white'}
+                  />
+                </View>
+              ) : (
+                'Izvezi račune'
+              )}
             </Text>
           </TouchableOpacity>
         </View>

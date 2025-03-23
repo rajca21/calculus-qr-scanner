@@ -59,6 +59,13 @@ export default function ReceiptModal({
       );
     }
 
+    if (scannedReceipts.length >= 30) {
+      return customAlert(
+        'Upozorenje!',
+        'Dozvoljeno je učitavanje maksimalno 30 računa odjednom! Izvezite postojeće račune i zatim nastavite učitavanje.'
+      );
+    }
+
     setLoading(true);
 
     const existingReceipt = scannedReceipts.some(

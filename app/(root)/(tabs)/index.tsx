@@ -140,7 +140,7 @@ export default function Index() {
             />
           </>
         )}
-        <View className='h-screen flex items-center justify-center'>
+        <View className='h-[100%] flex items-center justify-center'>
           <Ionicons name='scan-outline' size={250} color='white' />
           <Text className='text-white absolute text-2xl font-bold'>
             Skenirajte QR kod
