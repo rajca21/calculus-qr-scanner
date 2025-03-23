@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import {
   ActivityIndicator,
   SafeAreaView,
@@ -32,7 +32,6 @@ const Config = () => {
   const [newPassword, setNewPassword] = useState('');
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
   const [contact, setContact] = useState(user?.contact || '');
-  const [selectedDB, setSelectedDB] = useState(user?.selectedDB || '');
   const [loading, setLoading] = useState(false);
 
   const handleLogout = async () => {

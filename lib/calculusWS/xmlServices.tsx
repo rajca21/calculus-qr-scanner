@@ -1,5 +1,3 @@
-import { XMLParser } from 'fast-xml-parser';
-
 import { customAlert } from '../helpers';
 
 export const wsUrl =
@@ -52,7 +50,7 @@ export const getSoapAction = (methodName: string): string => {
   return `"http://tempuri.org/${methodName}"`;
 };
 
-// ### Funkcija za parsiranje XML odgovora (soap:Body dela) ###
+// ## Funkcija za parsiranje XML odgovora preko Regex-a (soap:Body dela) ###
 export const parseXMLWithRegex = (xml: string): Record<string, any> => {
   const obj: Record<string, any> = {};
   const tagRegex = /<([\w:]+)>(.*?)<\/\1>/gs;
@@ -66,7 +64,7 @@ export const parseXMLWithRegex = (xml: string): Record<string, any> => {
   return obj;
 };
 
-// ### Funckija za parsiranje Result dela iz odgovora metode ###
+// ## Funckija za parsiranje Result dela iz odgovora metode ###
 export const getResultFromXMLRecordForMethodName = (
   methodName: string,
   xmlRecord: Record<string, any>
@@ -80,13 +78,57 @@ export const getResultFromXMLRecordForMethodName = (
   return match ? match[1].trim() : null;
 };
 
-export const parseXMLToJson = (xml: string): any => {
-  const parser = new XMLParser({
-    ignoreAttributes: false, // Keep attributes
-    attributeNamePrefix: '', // No prefix for attributes
-    removeNSPrefix: true, // Remove namespace prefixes
-    parseTagValue: false, // Force values to remain as strings
-  });
+// ## Funkcija za parsiranje celog XML-a
+export const parseXML = (xml: string) => {
+  const parseNode = (node) => {
+    const obj = {};
+    let tagMatch;
+    const tagRegex = /<([^!?\/\s>]+)([^>]*)>(.*?)<\/\1>/gs;
 
-  return parser.parse(xml);
+    while ((tagMatch = tagRegex.exec(node)) !== null) {
+      const [, tagName, attributes, content] = tagMatch;
+
+      const attrs = {};
+      attributes.replace(/(\w+)="([^"]+)"/g, (_, key, value) => {
+        attrs[key] = value;
+      });
+
+      if (!obj[tagName]) {
+        obj[tagName] = [];
+      }
+
+      obj[tagName].push({
+        ...attrs,
+        ...(content.includes('<') ? parseNode(content) : { _text: content }),
+      });
+    }
+
+    return obj;
+  };
+
+  return parseNode(xml);
+};
+
+// Funkcija za parsiranje jednog polja iz odgovora na osnovu naziva metode i naziva polja
+export const parseVariable = (
+  variable: string,
+  methodName: string,
+  parsedData: any
+) => {
+  return (
+    parsedData?.['soap:Envelope']?.[0]?.['soap:Body']?.[0]?.[
+      `${methodName}Response`
+    ]?.[0]?.[`${methodName}Result`]?.[0]?.['diffgr:diffgram']?.[0]?.[
+      'NewDataSet'
+    ]?.[0]?.['Table']?.[0]?.[variable]?.[0]?._text || ''
+  );
+};
+
+// Funkcija za parsiranje u slučaju vraćanja samo SK
+export const parseSK = (methodName: string, parsedData: any) => {
+  return (
+    parsedData?.['soap:Envelope']?.[0]?.['soap:Body']?.[0]?.[
+      `${methodName}Response`
+    ]?.[0]?.[`${methodName}Result`]?.[0]?.['_text'] || ''
+  );
 };

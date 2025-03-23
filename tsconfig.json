@@ -5,7 +5,8 @@
     "paths": {
       "@/*": ["./*"]
     },
-    "noImplicitAny": false
+    "noImplicitAny": false,
+    "jsx": "react-native"
   },
   "include": [
     "**/*.ts",

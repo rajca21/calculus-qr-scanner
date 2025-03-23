@@ -4,7 +4,9 @@ import { customAlert } from '../helpers';
 import {
   contentType,
   getSoapAction,
-  parseXMLToJson,
+  parseSK,
+  parseVariable,
+  parseXML,
   soapBodyBuilder,
   wsUrl,
 } from './xmlServices';
@@ -44,10 +46,13 @@ export const login = async (
       }
     );
 
-    const uidJsonData = parseXMLToJson(data);
-    const uid =
-      uidJsonData.Envelope?.Body?.AzurWebQRScanKorisnikResponse
-        ?.AzurWebQRScanKorisnikResult;
+    const parsedData = parseXML(data);
+
+    if (!parsedData) {
+      throw new Error('No user data found');
+    }
+
+    const uid = parseSK('AzurWebQRScanKorisnik', parsedData);
 
     if (
       uid ===
@@ -55,6 +60,10 @@ export const login = async (
     ) {
       customAlert('Greška', 'Pogrešni kredencijali');
       return null;
+    }
+
+    if (!uid) {
+      throw new Error('No user data found');
     }
 
     return getUserById(uid, email);
@@ -99,17 +108,16 @@ export const logout = async (
       }
     );
 
-    const uidJsonData = parseXMLToJson(data);
-    const uid =
-      uidJsonData.Envelope?.Body?.AzurWebQRScanKorisnikResponse
-        ?.AzurWebQRScanKorisnikResult;
+    const parsedData = parseXML(data);
 
-    if (
-      uid ===
-      'ERROR [HY000] [Sybase][ODBC Driver][SQL Anywhere]User-defined exception signaled'
-    ) {
-      customAlert('Greška', 'Greška prilikom odjavljivanja');
-      return null;
+    if (!parsedData) {
+      throw new Error('No user data found');
+    }
+
+    const uid = parseSK('AzurWebQRScanKorisnik', parsedData);
+
+    if (!uid) {
+      throw new Error('No user data found');
     }
 
     return 'success';
@@ -147,11 +155,13 @@ export const register = async (
       }
     );
 
-    const jsonData = parseXMLToJson(data);
+    const parsedData = parseXML(data);
 
-    const uid =
-      jsonData.Envelope?.Body?.UbaciWebQRScanKorisnikResponse
-        ?.UbaciWebQRScanKorisnikResult;
+    if (!parsedData) {
+      throw new Error('No user data found');
+    }
+
+    const uid = parseSK('AzurWebQRScanKorisnik', parsedData);
 
     if (
       uid ===
@@ -159,6 +169,10 @@ export const register = async (
     ) {
       customAlert('Upozorenje!', 'Korisnik sa ovom email adresom već postoji!');
       return null;
+    }
+
+    if (!uid) {
+      throw new Error('No user data found');
     }
 
     return 'success';
@@ -189,28 +203,42 @@ export const getUserById = async (
       }
     );
 
-    const jsonData = parseXMLToJson(data);
-
-    const tables =
-      jsonData.Envelope?.Body?.DajWebQRScanKorisnikResponse
-        ?.DajWebQRScanKorisnikResult?.diffgram?.NewDataSet?.Table;
-
-    if (!tables) {
+    const parsedData = parseXML(data);
+    // const jsonData = JSON.stringify(parsedData, null, 2);
+    if (!parsedData) {
       throw new Error('No user data found');
     }
 
+    const serialNumbers = parseVariable(
+      'SerijskiBrojevi',
+      'DajWebQRScanKorisnik',
+      parsedData
+    );
+
     const user: User = {
-      uid: id,
+      uid: parseVariable(
+        'QRScanKorisnikSK',
+        'DajWebQRScanKorisnik',
+        parsedData
+      ),
       email,
-      companyName: tables.nazivfirme,
-      contact: tables.Kontakt,
-      databases: tables.SerijskiBrojevi
-        ? tables.SerijskiBrojevi.split(',').map((serialNum: string) => ({
+      companyName: parseVariable(
+        'nazivfirme',
+        'DajWebQRScanKorisnik',
+        parsedData
+      ),
+      contact: parseVariable('Kontakt', 'DajWebQRScanKorisnik', parsedData),
+      databases: serialNumbers
+        ? serialNumbers.split(',').map((serialNum: string) => ({
             serialNum: serialNum.trim(),
           }))
         : [],
-      sessionToken: tables.SessionToken,
-      verified: tables.SerijskiBrojevi === '' ? false : true,
+      sessionToken: parseVariable(
+        'SessionToken',
+        'DajWebQRScanKorisnik',
+        parsedData
+      ),
+      verified: serialNumbers === '' ? false : true,
       selectedDB: null,
     };
 
@@ -218,6 +246,7 @@ export const getUserById = async (
 
     return user;
   } catch (error) {
+    console.log(error);
     customAlert('Greška', 'Greška prilikom vraćanja podataka o korisniku');
     return null;
   }
@@ -260,10 +289,13 @@ export const resetPassword = async (
       }
     );
 
-    const uidJsonData = parseXMLToJson(data);
-    const uid =
-      uidJsonData.Envelope?.Body?.AzurWebQRScanKorisnikResponse
-        ?.AzurWebQRScanKorisnikResult;
+    const parsedData = parseXML(data);
+
+    if (!parsedData) {
+      throw new Error('No user data found');
+    }
+
+    const uid = parseSK('AzurWebQRScanKorisnik', parsedData);
 
     if (
       uid ===
@@ -319,10 +351,13 @@ export const updateProfileInfo = async (
       }
     );
 
-    const uidJsonData = parseXMLToJson(data);
-    const uid =
-      uidJsonData.Envelope?.Body?.AzurWebQRScanKorisnikResponse
-        ?.AzurWebQRScanKorisnikResult;
+    const parsedData = parseXML(data);
+
+    if (!parsedData) {
+      throw new Error('No user data found');
+    }
+
+    const uid = parseSK('AzurWebQRScanKorisnik', parsedData);
 
     if (
       uid ===

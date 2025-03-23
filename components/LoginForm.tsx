@@ -58,23 +58,30 @@ export default function LoginForm({
 
     setLoading(true);
 
-    const user = await login(email, password);
+    try {
+      const user = await login(email, password);
 
-    if (user) {
-      if (!user.verified) {
+      if (user) {
+        if (!user.verified) {
+          setLoading(false);
+          return customAlert(
+            'Upozorenje!',
+            'Vaš nalog nije verifikovan. Obratite se korisničkoj podršci'
+          );
+        }
+        setUser(user);
+        await setLocalStorage('userDetails', {
+          ...user,
+        });
         setLoading(false);
-        return customAlert(
-          'Upozorenje!',
-          'Vaš nalog nije verifikovan. Obratite se korisničkoj podršci'
-        );
+        setIsLoggedIn(true);
+        router.replace('/(root)/(tabs)');
       }
-      setUser(user);
-      await setLocalStorage('userDetails', {
-        ...user,
-      });
+
       setLoading(false);
-      setIsLoggedIn(true);
-      router.replace('/(root)/(tabs)');
+    } catch (error) {
+      console.log(error);
+      setLoading(false);
     }
   };
 
