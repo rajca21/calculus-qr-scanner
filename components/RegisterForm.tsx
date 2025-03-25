@@ -79,6 +79,16 @@ export default function RegisterForm({
       return setError('Unesite naziv firme');
     }
 
+    if (
+      hasMaliciousInput(email) ||
+      hasMaliciousInput(password) ||
+      hasMaliciousInput(confirmPassword) ||
+      hasMaliciousInput(pib) ||
+      hasMaliciousInput(companyName) ||
+      hasMaliciousInput(contact)
+    )
+      return;
+
     setLoading(true);
 
     const res = await register(email, password, pib, companyName, contact);
@@ -172,7 +182,6 @@ export default function RegisterForm({
                     />
                     <TextInput
                       placeholder='PIB *'
-                      secureTextEntry
                       textContentType='oneTimeCode'
                       className='pl-4 font-rubik border-none outline-none w-full'
                       value={pib}
@@ -188,7 +197,6 @@ export default function RegisterForm({
                     />
                     <TextInput
                       placeholder='Naziv firme *'
-                      secureTextEntry
                       textContentType='oneTimeCode'
                       className='pl-4 font-rubik border-none outline-none w-full'
                       value={companyName}
@@ -200,7 +208,6 @@ export default function RegisterForm({
                     <FontAwesome6 name='contact-book' size={24} color='black' />
                     <TextInput
                       placeholder='Kontakt telefon/email adresa'
-                      secureTextEntry
                       textContentType='oneTimeCode'
                       className='pl-4 font-rubik border-none outline-none w-full'
                       value={contact}

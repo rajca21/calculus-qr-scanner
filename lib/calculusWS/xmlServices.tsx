@@ -1,7 +1,7 @@
 import { customAlert } from '../helpers';
 
 export const wsUrl =
-  'http://116.202.50.237/CWSFiskaliQR/CalculusWebService.asmx';
+  'https://116.202.50.237/CWSFiskaliQR/CalculusWebService.asmx';
 
 // # Funkcija za formatiranje ulaznih parametara metode WS
 const keysValuesBuilder = (keys: string[], values: string[]) => {
