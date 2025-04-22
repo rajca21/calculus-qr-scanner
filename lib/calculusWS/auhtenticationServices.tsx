@@ -1,137 +1,11 @@
 import axios from 'axios';
 import { User } from '../types/User';
 import { customAlert } from '../helpers';
-import {
-  contentType,
-  getSoapAction,
-  parseSK,
-  parseVariable,
-  parseXML,
-  soapBodyBuilder,
-  wsUrl,
-} from './xmlServices';
 
-/**
- * @route   POST http://{ipAddress}/CWSFiskaliQR/CalculusWebService.asmx
- * @desc    Logovanje korisnika
- * @name    AzurWebQRScanKorisnik
- */
-export const login = async (
-  email: string,
-  password: string
-): Promise<User | null> => {
-  try {
-    let { data } = await axios.post(
-      wsUrl,
-      soapBodyBuilder(
-        'AzurWebQRScanKorisnik',
-        [
-          'korisniksk',
-          'email',
-          'lozinka',
-          'novalozinka',
-          'pib',
-          'nazivfirme',
-          'kontakt',
-          'token',
-          'tipazur',
-        ],
-        ['0', email, password, '', '', '', '', '', 'L']
-      ),
-      {
-        headers: {
-          'Content-Type': contentType,
-          SOAPAction: getSoapAction('AzurWebQRScanKorisnik'),
-        },
-      }
-    );
+const API_AUTH_URL = 'https://calculus-qr-scanner-api.onrender.com/api/auth';
+const API_USERS_URL = 'https://calculus-qr-scanner-api.onrender.com/api/users';
 
-    const parsedData = parseXML(data);
-
-    if (!parsedData) {
-      throw new Error('No user data found');
-    }
-
-    const uid = parseSK('AzurWebQRScanKorisnik', parsedData);
-
-    if (
-      uid ===
-      'ERROR [HY000] [Sybase][ODBC Driver][SQL Anywhere]User-defined exception signaled'
-    ) {
-      customAlert('Greška', 'Pogrešni kredencijali');
-      return null;
-    }
-
-    if (!uid) {
-      throw new Error('No user data found');
-    }
-
-    return getUserById(uid, email);
-  } catch (error) {
-    customAlert('Greška', 'Greška prilikom logovanja korisnika!');
-    return null;
-  }
-};
-
-/**
- * @route   POST http://{ipAddress}/CWSFiskaliQR/CalculusWebService.asmx
- * @desc    Logout korisnika
- * @name    AzurWebQRScanKorisnik
- */
-export const logout = async (
-  korisniksk: string,
-  sessionToken: string
-): Promise<string | null> => {
-  try {
-    let { data } = await axios.post(
-      wsUrl,
-      soapBodyBuilder(
-        'AzurWebQRScanKorisnik',
-        [
-          'korisniksk',
-          'email',
-          'lozinka',
-          'novalozinka',
-          'pib',
-          'nazivfirme',
-          'kontakt',
-          'token',
-          'tipazur',
-        ],
-        [korisniksk, '', '', '', '', '', '', sessionToken, 'O']
-      ),
-      {
-        headers: {
-          'Content-Type': contentType,
-          SOAPAction: getSoapAction('AzurWebQRScanKorisnik'),
-        },
-      }
-    );
-
-    const parsedData = parseXML(data);
-
-    if (!parsedData) {
-      throw new Error('No user data found');
-    }
-
-    const uid = parseSK('AzurWebQRScanKorisnik', parsedData);
-
-    if (!uid) {
-      throw new Error('No user data found');
-    }
-
-    return 'success';
-  } catch (error) {
-    customAlert('Greška', 'Greška prilikom odjavljivanja korisnika!');
-    return null;
-  }
-};
-
-/**
- * @route   POST http://{ipAddress}/CWSFiskaliQR/CalculusWebService.asmx
- * @desc    Registracija korisnika
- * @name    UbaciWebQRScanKorisnik
- */
+// # REGISTER USER
 export const register = async (
   email: string,
   password: string,
@@ -140,123 +14,135 @@ export const register = async (
   contact: string
 ): Promise<string | null> => {
   try {
-    let { data } = await axios.post(
-      wsUrl,
-      soapBodyBuilder(
-        'UbaciWebQRScanKorisnik',
-        ['email', 'lozinka', 'pib', 'nazivfirme', 'kontakt', 'token'],
-        [email, password, pib, companyName, contact, '']
-      ),
+    const res = await axios.post(
+      `${API_AUTH_URL}/register`,
       {
-        headers: {
-          'Content-Type': contentType,
-          SOAPAction: getSoapAction('UbaciWebQRScanKorisnik'),
-        },
+        email,
+        password,
+        companyId: pib,
+        companyName,
+        contact,
+      },
+      {
+        validateStatus: () => true,
       }
     );
 
-    const parsedData = parseXML(data);
-
-    if (!parsedData) {
-      throw new Error('No user data found');
-    }
-
-    const uid = parseSK('AzurWebQRScanKorisnik', parsedData);
-
-    if (
-      uid ===
-      "ERROR [23000] [Sybase][ODBC Driver][SQL Anywhere]Index 'AK_WebQRScanKorisnikEmail' for table 'WebQRScanKorisnik' would not be unique"
-    ) {
-      customAlert('Upozorenje!', 'Korisnik sa ovom email adresom već postoji!');
+    if (res.status === 201) {
+      return 'success';
+    } else if (res.status === 400) {
+      customAlert('Upozorenje', res.data);
       return null;
+    } else {
+      throw new Error('Greška prilikom registracije');
     }
-
-    if (!uid) {
-      throw new Error('No user data found');
-    }
-
-    return 'success';
   } catch (error) {
     customAlert('Greška', 'Greška prilikom registracije');
     return null;
   }
 };
 
-/**
- * @route   POST http://{ipAddress}/CWSFiskaliQR/CalculusWebService.asmx
- * @desc    Vraća podatke o korisniku
- * @name    DajWebQRScanKorisnik
- */
+export const login = async (
+  email: string,
+  password: string
+): Promise<User | null> => {
+  try {
+    const res = await axios.post(
+      `${API_AUTH_URL}/login`,
+      { email, password },
+      {
+        validateStatus: () => true,
+      }
+    );
+
+    let uid: string = '';
+
+    if (res.status === 200) {
+      uid = res.data.user;
+    } else if (res.status === 400) {
+      customAlert('Upozorenje', res.data);
+      return null;
+    } else {
+      throw new Error('Greška prilikom prijavljivanja korisnika');
+    }
+
+    return getUserById(uid, email);
+  } catch (error) {
+    customAlert('Greška', 'Greška prilikom prijavljivanja korisnika!');
+    return null;
+  }
+};
+
+export const logout = async (
+  korisniksk: string,
+  sessionToken: string
+): Promise<string | null> => {
+  try {
+    const res = await axios.post(
+      `${API_AUTH_URL}/logout`,
+      {
+        uid: korisniksk,
+        token: sessionToken,
+      },
+      {
+        validateStatus: () => true,
+      }
+    );
+
+    if (res.status === 200) {
+      return 'success';
+    } else if (res.status === 400) {
+      customAlert('Upozorenje', res.data);
+      return null;
+    } else {
+      throw new Error('Greška prilikom odjavljivanja korisnika');
+    }
+  } catch (error) {
+    customAlert('Greška', 'Greška prilikom odjavljivanja korisnika!');
+    return null;
+  }
+};
+
 export const getUserById = async (
   id: string,
   email: string = ''
 ): Promise<User | null> => {
   try {
-    let { data } = await axios.post(
-      wsUrl,
-      soapBodyBuilder('DajWebQRScanKorisnik', ['QRScanKorisnikSK'], [id]),
-      {
-        headers: {
-          'Content-Type': contentType,
-          SOAPAction: getSoapAction('DajWebQRScanKorisnik'),
-        },
-      }
-    );
+    const res = await axios.get(`${API_USERS_URL}/${id}`, {
+      validateStatus: () => true,
+    });
 
-    const parsedData = parseXML(data);
-    // const jsonData = JSON.stringify(parsedData, null, 2);
-    if (!parsedData) {
-      throw new Error('No user data found');
+    if (res.status === 200) {
+      const user: User = {
+        uid: res.data.user.QRScanKorisnikSK,
+        email,
+        sessionToken: res?.data?.user?.SessionToken || null,
+        companyName: res.data.user.nazivfirme,
+        contact: res.data.user?.Kontakt || '',
+        databases: res?.data?.user?.SerijskiBrojevi
+          ? res.data.user.SerijskiBrojevi.split(',').map(
+              (serialNum: string) => ({
+                serialNum: serialNum.trim(),
+              })
+            )
+          : [],
+        verified: res?.data?.user?.SerijskiBrojevi === '' ? false : true,
+        selectedDB: null,
+      };
+      user.selectedDB = user.verified ? user.databases[0]?.serialNum : null;
+      return user;
+    } else if (res.status === 400 || res.status === 404) {
+      customAlert('Upozorenje', res.data);
+      return null;
+    } else {
+      throw new Error('Greška prilikom povlačenja podataka o korisniku');
     }
-
-    const serialNumbers = parseVariable(
-      'SerijskiBrojevi',
-      'DajWebQRScanKorisnik',
-      parsedData
-    );
-
-    const user: User = {
-      uid: parseVariable(
-        'QRScanKorisnikSK',
-        'DajWebQRScanKorisnik',
-        parsedData
-      ),
-      email,
-      companyName: parseVariable(
-        'nazivfirme',
-        'DajWebQRScanKorisnik',
-        parsedData
-      ),
-      contact: parseVariable('Kontakt', 'DajWebQRScanKorisnik', parsedData),
-      databases: serialNumbers
-        ? serialNumbers.split(',').map((serialNum: string) => ({
-            serialNum: serialNum.trim(),
-          }))
-        : [],
-      sessionToken: parseVariable(
-        'SessionToken',
-        'DajWebQRScanKorisnik',
-        parsedData
-      ),
-      verified: serialNumbers === '' ? false : true,
-      selectedDB: null,
-    };
-
-    user.selectedDB = user.verified ? user.databases[0]?.serialNum : null;
-
-    return user;
   } catch (error) {
-    console.log(error);
-    customAlert('Greška', 'Greška prilikom vraćanja podataka o korisniku');
+    customAlert('Greška', 'Greška prilikom povlačenja podataka o korisniku');
     return null;
   }
 };
 
-/**
- * @route   POST http://{ipAddress}/CWSFiskaliQR/CalculusWebService.asmx
- * @desc    Izmena lozinke
- * @name    AzurWebQRScanKorisnik
- */
 export const resetPassword = async (
   korisniksk: string,
   sessionToken: string,
@@ -264,110 +150,57 @@ export const resetPassword = async (
   newPassword: string
 ): Promise<string | null> => {
   try {
-    let { data } = await axios.post(
-      wsUrl,
-      soapBodyBuilder(
-        'AzurWebQRScanKorisnik',
-        [
-          'korisniksk',
-          'email',
-          'lozinka',
-          'novalozinka',
-          'pib',
-          'nazivfirme',
-          'kontakt',
-          'token',
-          'tipazur',
-        ],
-        [korisniksk, '', password, newPassword, '', '', '', sessionToken, 'R']
-      ),
+    const res = await axios.put(
+      `${API_USERS_URL}/${korisniksk}/password`,
       {
-        headers: {
-          'Content-Type': contentType,
-          SOAPAction: getSoapAction('AzurWebQRScanKorisnik'),
-        },
+        token: sessionToken,
+        password,
+        newPassword,
+      },
+      {
+        validateStatus: () => true,
       }
     );
 
-    const parsedData = parseXML(data);
-
-    if (!parsedData) {
-      throw new Error('No user data found');
-    }
-
-    const uid = parseSK('AzurWebQRScanKorisnik', parsedData);
-
-    if (
-      uid ===
-      'ERROR [HY000] [Sybase][ODBC Driver][SQL Anywhere]User-defined exception signaled'
-    ) {
-      customAlert(
-        'Greška',
-        'Greška prilikom izmene lozinke! Da li ste uneli ispravnu trenutnu lozinku?'
-      );
+    if (res.status === 202) {
+      return 'success';
+    } else if (res.status === 400 || res.status === 403) {
+      customAlert('Upozorenje', res.data);
       return null;
+    } else {
+      throw new Error('Greška prilikom izmene lozinke!');
     }
-
-    return 'success';
   } catch (error) {
     customAlert('Greška', 'Greška prilikom izmene lozinke!');
     return null;
   }
 };
 
-/**
- * @route   POST http://{ipAddress}/CWSFiskaliQR/CalculusWebService.asmx
- * @desc    Ažuriranje informacija o profilu
- * @name    AzurWebQRScanKorisnik
- */
 export const updateProfileInfo = async (
   korisniksk: string,
   sessionToken: string,
   contact: string
 ): Promise<string | null> => {
   try {
-    let { data } = await axios.post(
-      wsUrl,
-      soapBodyBuilder(
-        'AzurWebQRScanKorisnik',
-        [
-          'korisniksk',
-          'email',
-          'lozinka',
-          'novalozinka',
-          'pib',
-          'nazivfirme',
-          'kontakt',
-          'token',
-          'tipazur',
-        ],
-        [korisniksk, '', '', '', '', '', contact, sessionToken, 'P']
-      ),
+    const res = await axios.put(
+      `${API_USERS_URL}/${korisniksk}/profile`,
       {
-        headers: {
-          'Content-Type': contentType,
-          SOAPAction: getSoapAction('AzurWebQRScanKorisnik'),
-        },
+        token: sessionToken,
+        contact,
+      },
+      {
+        validateStatus: () => true,
       }
     );
 
-    const parsedData = parseXML(data);
-
-    if (!parsedData) {
-      throw new Error('No user data found');
-    }
-
-    const uid = parseSK('AzurWebQRScanKorisnik', parsedData);
-
-    if (
-      uid ===
-      'ERROR [HY000] [Sybase][ODBC Driver][SQL Anywhere]User-defined exception signaled'
-    ) {
-      customAlert('Greška', 'Greška prilikom ažuriranja podataka!');
+    if (res.status === 202) {
+      return 'success';
+    } else if (res.status === 400 || res.status === 403) {
+      customAlert('Upozorenje', res.data);
       return null;
+    } else {
+      throw new Error('Greška prilikom izmene lozinke!');
     }
-
-    return 'success';
   } catch (error) {
     customAlert('Greška', 'Greška prilikom ažuriranja podataka!');
     return null;

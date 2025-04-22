@@ -99,6 +99,13 @@ export default function RegisterForm({
         'Obaveštenje',
         'Vaš nalog je uspešno kreiran. Bićete kontaktirani od strane korisničke podrške za aktivaciju naloga'
       );
+      setEmail('');
+      setPassword('');
+      setConfirmPassword('');
+      setCompanyName('');
+      setPib('');
+      setContact('');
+      setShowRegisterForm(false);
     }
   };
 

@@ -1,19 +1,9 @@
 import axios from 'axios';
 import { customAlert } from '../helpers';
-import {
-  wsUrl,
-  soapBodyBuilder,
-  contentType,
-  getSoapAction,
-  parseXML,
-  parseSK,
-} from './xmlServices';
 
-/**
- * @route   POST http://{ipAddress}/CWSFiskaliQR/CalculusWebService.asmx
- * @desc    Export učitanih računa
- * @name    UbaciWebQRScanUcitaniRacuni
- */
+const API_RECEIPTS_URL =
+  'https://calculus-qr-scanner-api.onrender.com/api/receipts';
+
 export const exportReceipts = async (
   dbSerialNumber: string,
   receipts: string,
@@ -21,46 +11,31 @@ export const exportReceipts = async (
   sessionToken: string
 ): Promise<string | null> => {
   try {
-    let { data } = await axios.post(
-      wsUrl,
-      soapBodyBuilder(
-        'UbaciWebQRScanUcitaniRacuni',
-        ['sbbaze', 'racuni', 'korisniksk', 'token'],
-        [dbSerialNumber, receipts, uid, sessionToken]
-      ),
+    const res = await axios.post(
+      `${API_RECEIPTS_URL}`,
       {
-        headers: {
-          'Content-Type': contentType,
-          SOAPAction: getSoapAction('UbaciWebQRScanUcitaniRacuni'),
-        },
+        dbSerialNumber,
+        receipts,
+        uid,
+        token: sessionToken,
+      },
+      {
+        validateStatus: () => true,
       }
     );
 
-    const parsedData = parseXML(data);
+    console.log(res.data);
 
-    if (!parsedData) {
-      throw new Error('Error while uploading receipts');
-    }
-
-    const rId = parseSK('UbaciWebQRScanUcitaniRacuni', parsedData);
-
-    if (!rId) {
-      throw new Error('No user data found');
-    }
-
-    if (
-      rId ===
-      'ERROR [HY000] [Sybase][ODBC Driver][SQL Anywhere]User-defined exception signaled'
-    ) {
-      customAlert(
-        'Greška',
-        'Greška prilikom izvoza računa! Ulogujte se i pokušajte ponovo.'
-      );
+    if (res.status === 201) {
+      return 'success';
+    } else if (res.status === 400 || res.status === 403) {
+      customAlert('Upozorenje', res.data);
       return null;
+    } else {
+      throw new Error('Greška prilikom izvoza računa');
     }
-
-    return 'success';
   } catch (error) {
+    console.log(error);
     customAlert('Greška', 'Greška prilikom izvoza računa');
     return null;
   }

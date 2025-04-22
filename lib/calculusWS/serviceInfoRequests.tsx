@@ -1,78 +1,32 @@
 import axios from 'axios';
-import {
-  contentType,
-  getResultFromXMLRecordForMethodName,
-  getSoapAction,
-  parseXMLWithRegex,
-  soapBodyBuilder,
-  wsUrl,
-} from '../calculusWS/xmlServices';
 import { customAlert } from '../helpers';
 
-/**
- * @route   POST http://{ipAddress}/CWSFiskaliQR/CalculusWebService.asmx
- * @desc    Vraća datum i vreme Web servera - metoda za test
- * @name    DatumVremeWebServera
- */
-export const dateTimeWebServer = async (): Promise<string | null> => {
+const API_INFO_URL = 'https://calculus-qr-scanner-api.onrender.com/api/info';
+
+export const getDateTimeWebServer = async (): Promise<boolean> => {
   try {
-    let { data } = await axios.post(
-      wsUrl,
-      soapBodyBuilder('DatumVremeWebServera'),
-      {
-        headers: {
-          'Content-Type': contentType,
-          SOAPAction: getSoapAction('DatumVremeWebServera'),
-        },
-      }
-    );
+    const res = await axios.get(`${API_INFO_URL}/ws`);
 
-    let xmlRecord = parseXMLWithRegex(data);
-    let result = getResultFromXMLRecordForMethodName(
-      'DatumVremeWebServera',
-      xmlRecord
-    );
-
-    if (result === null) {
-      throw new Error('');
+    if (res.status !== 200) {
+      return false;
     }
 
-    return result;
+    return true;
   } catch (error) {
     customAlert('Greška', 'Greška prilikom pokretanja Web servera');
     return null;
   }
 };
 
-/**
- * @route   POST http://{ipAddress}/CWSFiskaliQR/CalculusWebService.asmx
- * @desc    Vraća datum i vreme DB servera - metoda za test
- * @name    DatumVremeDBServera
- */
-export const dateTimeDBServer = async (): Promise<string | null> => {
+export const getDateTimeDBServer = async (): Promise<boolean> => {
   try {
-    let { data } = await axios.post(
-      wsUrl,
-      soapBodyBuilder('DatumVremeDBServera'),
-      {
-        headers: {
-          'Content-Type': contentType,
-          SOAPAction: getSoapAction('DatumVremeDBServera'),
-        },
-      }
-    );
+    const res = await axios.get(`${API_INFO_URL}/db`);
 
-    let xmlRecord = parseXMLWithRegex(data);
-    let result = getResultFromXMLRecordForMethodName(
-      'DatumVremeDBServera',
-      xmlRecord
-    );
-
-    if (result === null) {
-      throw new Error('');
+    if (res.status !== 200) {
+      return false;
     }
 
-    return result;
+    return true;
   } catch (error) {
     customAlert('Greška', 'Greška prilikom pokretanja DB servera');
     return null;

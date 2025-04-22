@@ -82,7 +82,9 @@ const Config = () => {
     }
 
     if (passwordChangeArray.every((value) => value === '')) {
-      await updateUserInfo();
+      if (contact !== user.contact) {
+        await updateUserInfo();
+      }
       return setLoading(false);
     }
 
@@ -94,7 +96,6 @@ const Config = () => {
       return setLoading(false);
     } else {
       if (newPassword !== confirmNewPassword) {
-        console.log('!!');
         customAlert('Greška', 'Lozinke se ne poklapaju!');
         return setLoading(false);
       }
@@ -110,9 +111,12 @@ const Config = () => {
         setCurrentPassword('');
         setNewPassword('');
         setConfirmNewPassword('');
-        customAlert('Obaveštenje', 'Uspešno izmenjena lozinka');
+        customAlert('Obaveštenje', 'Lozinka uspešno promenjena');
       }
-      await updateUserInfo();
+
+      if (contact !== user.contact) {
+        await updateUserInfo();
+      }
 
       setLoading(false);
     }
