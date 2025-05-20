@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import { useRouter } from 'expo-router';
@@ -97,7 +98,7 @@ export default function LoginForm({
           backgroundColor: 'rgba(0, 0, 0, 0.5)',
         }}
       >
-        <TouchableWithoutFeedback onPress={() => {}}>
+        <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
           <Animated.View
             style={{
               transform: [{ translateY: formTranslateY }],
@@ -115,58 +116,80 @@ export default function LoginForm({
             <KeyboardAvoidingView
               behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
               style={{ flex: 1 }}
+              keyboardVerticalOffset={Platform.select({
+                ios: 20,
+                android: 120,
+              })}
             >
               <KeyboardAwareScrollView contentContainerStyle={{ flexGrow: 1 }}>
                 <View>
                   <Text className='text-2xl font-rubik-medium text-center mb-12'>
                     Unesite vaše kredencijale
                   </Text>
-                  <View className='flex flex-row items-center border border-gray-300 rounded-lg p-4 mb-4'>
-                    <Feather name='mail' size={24} color='black' />
-                    <TextInput
-                      placeholder='Email adresa'
-                      className='pl-4 font-rubik border-none outline-none w-full'
-                      value={email}
-                      textContentType='emailAddress'
-                      onChangeText={(text) => setEmail(text)}
-                      keyboardType='email-address'
-                    />
-                  </View>
+                  <View style={{ flex: 1 }}>
+                    <ScrollView
+                      showsVerticalScrollIndicator={false}
+                      contentContainerStyle={{ paddingBottom: 20 }}
+                    >
+                      <View
+                        className={`flex flex-row items-center border border-gray-300 rounded-lg px-4 ${
+                          Platform.OS === 'ios' ? 'py-4' : 'py-1'
+                        } mb-4`}
+                      >
+                        <Feather name='mail' size={24} color='black' />
+                        <TextInput
+                          placeholder='Email adresa'
+                          className='pl-4 font-rubik border-none outline-none w-full'
+                          value={email}
+                          textContentType='emailAddress'
+                          onChangeText={(text) => setEmail(text)}
+                          keyboardType='email-address'
+                        />
+                      </View>
 
-                  <View className='flex flex-row items-center border border-gray-300 rounded-lg p-4 mb-4'>
-                    <Feather name='lock' size={24} color='black' />
-                    <TextInput
-                      placeholder='Lozinka'
-                      secureTextEntry
-                      textContentType='oneTimeCode'
-                      className='pl-4 font-rubik border-none outline-none w-full'
-                      value={password}
-                      onChangeText={(text) => setPassword(text)}
-                    />
-                  </View>
+                      <View
+                        className={`flex flex-row items-center border border-gray-300 rounded-lg px-4 ${
+                          Platform.OS === 'ios' ? 'py-4' : 'py-1'
+                        } mb-4`}
+                      >
+                        <Feather name='lock' size={24} color='black' />
+                        <TextInput
+                          placeholder='Lozinka'
+                          secureTextEntry
+                          textContentType='oneTimeCode'
+                          className='pl-4 font-rubik border-none outline-none w-full'
+                          value={password}
+                          onChangeText={(text) => setPassword(text)}
+                        />
+                      </View>
 
-                  {error && (
-                    <Text className='mb-4 text-danger font-rubik-bold text-md'>
-                      {error}
-                    </Text>
-                  )}
-                  <TouchableOpacity
-                    disabled={loading}
-                    onPress={handleLogin}
-                    className='bg-primary-500 py-3 rounded-lg'
-                  >
-                    <View>
-                      {loading ? (
-                        <View className='w-full flex justify-center items-center'>
-                          <ActivityIndicator size={'large'} color={'white'} />
-                        </View>
-                      ) : (
-                        <Text className='text-lg font-rubik-medium text-center text-white'>
-                          Uloguj se
+                      {error && (
+                        <Text className='mb-4 text-danger font-rubik-bold text-md'>
+                          {error}
                         </Text>
                       )}
-                    </View>
-                  </TouchableOpacity>
+                      <TouchableOpacity
+                        disabled={loading}
+                        onPress={handleLogin}
+                        className='bg-primary-500 py-3 rounded-lg'
+                      >
+                        <View>
+                          {loading ? (
+                            <View className='w-full flex justify-center items-center'>
+                              <ActivityIndicator
+                                size={'large'}
+                                color={'white'}
+                              />
+                            </View>
+                          ) : (
+                            <Text className='text-lg font-rubik-medium text-center text-white'>
+                              Uloguj se
+                            </Text>
+                          )}
+                        </View>
+                      </TouchableOpacity>
+                    </ScrollView>
+                  </View>
                 </View>
               </KeyboardAwareScrollView>
             </KeyboardAvoidingView>

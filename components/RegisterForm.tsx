@@ -10,6 +10,7 @@ import {
   ActivityIndicator,
   KeyboardAvoidingView,
   Platform,
+  ScrollView,
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import {
@@ -121,7 +122,7 @@ export default function RegisterForm({
           backgroundColor: 'rgba(0, 0, 0, 0.5)',
         }}
       >
-        <TouchableWithoutFeedback onPress={() => {}}>
+        <TouchableWithoutFeedback onPress={() => Keyboard.dismiss()}>
           <Animated.View
             style={{
               transform: [{ translateY: formRegTranslateY }],
@@ -139,109 +140,144 @@ export default function RegisterForm({
             <KeyboardAvoidingView
               behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
               style={{ flex: 1 }}
+              keyboardVerticalOffset={Platform.select({
+                ios: 20,
+                android: 120,
+              })}
             >
               <KeyboardAwareScrollView contentContainerStyle={{ flexGrow: 1 }}>
-                <View>
-                  <Text className='text-2xl font-rubik-medium text-center mb-12'>
-                    Kreirajte nalog
-                  </Text>
-                  <View className='flex flex-row items-center border border-gray-300 rounded-lg p-4 mb-4'>
-                    <Feather name='mail' size={24} color='black' />
-                    <TextInput
-                      placeholder='Email adresa *'
-                      className='pl-4 font-rubik border-none outline-none w-full'
-                      textContentType='emailAddress'
-                      value={email}
-                      onChangeText={(text) => setEmail(text)}
-                      keyboardType='email-address'
-                    />
-                  </View>
-
-                  <View className='flex flex-row items-center border border-gray-300 rounded-lg p-4 mb-4'>
-                    <Feather name='lock' size={24} color='black' />
-                    <TextInput
-                      placeholder='Lozinka *'
-                      secureTextEntry
-                      textContentType='oneTimeCode'
-                      className='pl-4 font-rubik border-none outline-none w-full'
-                      value={password}
-                      onChangeText={(text) => setPassword(text)}
-                    />
-                  </View>
-
-                  <View className='flex flex-row items-center border border-gray-300 rounded-lg p-4 mb-4'>
-                    <Feather name='lock' size={24} color='black' />
-                    <TextInput
-                      placeholder='Potvrda lozinke *'
-                      secureTextEntry
-                      textContentType='oneTimeCode'
-                      className='pl-4 font-rubik border-none outline-none w-full'
-                      value={confirmPassword}
-                      onChangeText={(text) => setConfirmPassword(text)}
-                    />
-                  </View>
-
-                  <View className='flex flex-row items-center border border-gray-300 rounded-lg p-4 mb-4'>
-                    <MaterialCommunityIcons
-                      name='office-building-outline'
-                      size={24}
-                      color='black'
-                    />
-                    <TextInput
-                      placeholder='PIB *'
-                      textContentType='oneTimeCode'
-                      className='pl-4 font-rubik border-none outline-none w-full'
-                      value={pib}
-                      onChangeText={(text) => setPib(text)}
-                    />
-                  </View>
-
-                  <View className='flex flex-row items-center border border-gray-300 rounded-lg p-4 mb-4'>
-                    <MaterialCommunityIcons
-                      name='office-building-outline'
-                      size={24}
-                      color='black'
-                    />
-                    <TextInput
-                      placeholder='Naziv firme *'
-                      textContentType='oneTimeCode'
-                      className='pl-4 font-rubik border-none outline-none w-full'
-                      value={companyName}
-                      onChangeText={(text) => setCompanyName(text)}
-                    />
-                  </View>
-
-                  <View className='flex flex-row items-center border border-gray-300 rounded-lg p-4 mb-4'>
-                    <FontAwesome6 name='contact-book' size={24} color='black' />
-                    <TextInput
-                      placeholder='Kontakt telefon/email adresa'
-                      textContentType='oneTimeCode'
-                      className='pl-4 font-rubik border-none outline-none w-full'
-                      value={contact}
-                      onChangeText={(text) => setContact(text)}
-                    />
-                  </View>
-
-                  {error && (
-                    <Text className='mb-4 text-danger font-rubik-bold text-md'>
-                      {error}
-                    </Text>
-                  )}
-                  <TouchableOpacity
-                    disabled={loading}
-                    onPress={handleRegister}
-                    className='bg-primary-500 py-3 rounded-lg'
+                <Text className='text-2xl font-rubik-medium text-center mb-4'>
+                  Kreirajte nalog
+                </Text>
+                <View style={{ flex: 1 }}>
+                  <ScrollView
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={{ paddingBottom: 20 }}
                   >
-                    <Text className='text-lg font-rubik-medium text-center text-white'>
+                    <View
+                      className={`flex flex-row items-center border border-gray-300 rounded-lg px-4 ${
+                        Platform.OS === 'ios' ? 'py-4' : 'py-1'
+                      } mb-4`}
+                    >
+                      <Feather name='mail' size={24} color='black' />
+                      <TextInput
+                        placeholder='Email adresa *'
+                        className='pl-4 font-rubik border-none outline-none w-full'
+                        textContentType='emailAddress'
+                        value={email}
+                        onChangeText={(text) => setEmail(text)}
+                        keyboardType='email-address'
+                      />
+                    </View>
+
+                    <View
+                      className={`flex flex-row items-center border border-gray-300 rounded-lg px-4 ${
+                        Platform.OS === 'ios' ? 'py-4' : 'py-1'
+                      } mb-4`}
+                    >
+                      <Feather name='lock' size={24} color='black' />
+                      <TextInput
+                        placeholder='Lozinka *'
+                        secureTextEntry
+                        textContentType='oneTimeCode'
+                        className='pl-4 font-rubik border-none outline-none w-full'
+                        value={password}
+                        onChangeText={(text) => setPassword(text)}
+                      />
+                    </View>
+
+                    <View
+                      className={`flex flex-row items-center border border-gray-300 rounded-lg px-4 ${
+                        Platform.OS === 'ios' ? 'py-4' : 'py-1'
+                      } mb-4`}
+                    >
+                      <Feather name='lock' size={24} color='black' />
+                      <TextInput
+                        placeholder='Potvrda lozinke *'
+                        secureTextEntry
+                        textContentType='oneTimeCode'
+                        className='pl-4 font-rubik border-none outline-none w-full'
+                        value={confirmPassword}
+                        onChangeText={(text) => setConfirmPassword(text)}
+                      />
+                    </View>
+
+                    <View
+                      className={`flex flex-row items-center border border-gray-300 rounded-lg px-4 ${
+                        Platform.OS === 'ios' ? 'py-4' : 'py-1'
+                      } mb-4`}
+                    >
+                      <MaterialCommunityIcons
+                        name='office-building-outline'
+                        size={24}
+                        color='black'
+                      />
+                      <TextInput
+                        placeholder='PIB *'
+                        textContentType='oneTimeCode'
+                        className='pl-4 font-rubik border-none outline-none w-full'
+                        value={pib}
+                        onChangeText={(text) => setPib(text)}
+                      />
+                    </View>
+
+                    <View
+                      className={`flex flex-row items-center border border-gray-300 rounded-lg px-4 ${
+                        Platform.OS === 'ios' ? 'py-4' : 'py-1'
+                      } mb-4`}
+                    >
+                      <MaterialCommunityIcons
+                        name='office-building-outline'
+                        size={24}
+                        color='black'
+                      />
+                      <TextInput
+                        placeholder='Naziv firme *'
+                        textContentType='oneTimeCode'
+                        className='pl-4 font-rubik border-none outline-none w-full'
+                        value={companyName}
+                        onChangeText={(text) => setCompanyName(text)}
+                      />
+                    </View>
+
+                    <View
+                      className={`flex flex-row items-center border border-gray-300 rounded-lg px-4 ${
+                        Platform.OS === 'ios' ? 'py-4' : 'py-1'
+                      } mb-4`}
+                    >
+                      <FontAwesome6
+                        name='contact-book'
+                        size={24}
+                        color='black'
+                      />
+                      <TextInput
+                        placeholder='Kontakt telefon/email adresa'
+                        textContentType='oneTimeCode'
+                        className='pl-4 font-rubik border-none outline-none w-full'
+                        value={contact}
+                        onChangeText={(text) => setContact(text)}
+                      />
+                    </View>
+
+                    {error && (
+                      <Text className='mb-4 text-danger font-rubik-bold text-md'>
+                        {error}
+                      </Text>
+                    )}
+                    <TouchableOpacity
+                      disabled={loading}
+                      onPress={handleRegister}
+                      className='bg-primary-500 py-3 rounded-lg'
+                    >
                       {loading ? (
-                        <View className='w-full flex justify-center items-center'>
-                          <ActivityIndicator size={'large'} color={'white'} />
-                        </View>
+                        <ActivityIndicator size={'large'} color={'white'} />
                       ) : (
-                        'Registruj se'
+                        <Text className='text-lg font-rubik-medium text-center text-white'>
+                          Registruj se
+                        </Text>
                       )}
-                    </Text>
-                  </TouchableOpacity>
+                    </TouchableOpacity>
+                  </ScrollView>
                 </View>
               </KeyboardAwareScrollView>
             </KeyboardAvoidingView>

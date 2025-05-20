@@ -103,28 +103,32 @@ export default function Index() {
 
   if (cameraOpen) {
     return (
-      <CameraView
-        style={styles.fullscreenCamera}
-        facing={facing}
-        barcodeScannerSettings={{
-          barcodeTypes: ['qr'],
-        }}
-        onBarcodeScanned={handleBarcodeScanned}
-      >
+      <View style={styles.container}>
+        <CameraView
+          style={styles.fullscreenCamera}
+          facing={facing}
+          barcodeScannerSettings={{
+            barcodeTypes: ['qr'],
+          }}
+          onBarcodeScanned={scanned ? undefined : handleBarcodeScanned}
+        />
+
+        {/* Overlay elements */}
         <AntDesign
           style={styles.closeButton}
           name='closecircleo'
           size={28}
-          color='black'
+          color='white'
           onPress={() => setCameraOpen(false)}
         />
         <MaterialIcons
           style={styles.flipButton}
           name='flip-camera-android'
           size={28}
-          color='black'
+          color='white'
           onPress={toggleCameraFacing}
         />
+
         {scannedReceipts && scannedReceipts.length > 0 && (
           <>
             <Ionicons
@@ -140,16 +144,18 @@ export default function Index() {
             />
           </>
         )}
-        <View className='h-[100%] flex items-center justify-center'>
+
+        <View style={styles.scanGuide}>
           <Ionicons name='scan-outline' size={250} color='white' />
-          <Text className='text-white absolute text-2xl font-bold'>
-            Skenirajte QR kod
-          </Text>
+          <Text style={styles.scanText}>Skenirajte QR kod</Text>
         </View>
+
         {scanned && (
-          <View className='relative bottom-60 self-center bg-primary-300 rounded-md px-4 py-2 flex flex-row items-center gap-2'>
+          <View style={styles.scannedResult}>
             <TouchableOpacity onPress={handleReadBarcode}>
-              <Text className='text-white'>Prikaži skenirani račun</Text>
+              <Text style={styles.scannedResultText}>
+                Prikaži skenirani račun
+              </Text>
             </TouchableOpacity>
             <AntDesign name='close' size={18} color='white' onPress={dismiss} />
           </View>
@@ -168,7 +174,7 @@ export default function Index() {
             setScannedInvoiceNumber={setScannedInvoiceNumber}
           />
         )}
-      </CameraView>
+      </View>
     );
   }
 
@@ -197,6 +203,10 @@ export default function Index() {
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    position: 'relative',
+  },
   fullscreenCamera: {
     flex: 1,
   },
@@ -207,6 +217,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 10,
     color: 'white',
+    zIndex: 1,
   },
   flipButton: {
     position: 'absolute',
@@ -215,6 +226,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 10,
     color: 'white',
+    zIndex: 1,
   },
   showReceiptsButton: {
     position: 'absolute',
@@ -224,5 +236,33 @@ const styles = StyleSheet.create({
     padding: 10,
     color: '#2368fd',
     backgroundColor: 'white',
+    zIndex: 1,
+  },
+  scanGuide: {
+    position: 'absolute',
+    width: '100%',
+    height: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  scanText: {
+    color: 'white',
+    fontSize: 24,
+    fontWeight: 'bold',
+    position: 'absolute',
+  },
+  scannedResult: {
+    position: 'absolute',
+    bottom: 150,
+    alignSelf: 'center',
+    backgroundColor: '#2368fd',
+    borderRadius: 8,
+    padding: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  scannedResultText: {
+    color: 'white',
   },
 });

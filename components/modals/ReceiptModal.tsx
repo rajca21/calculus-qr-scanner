@@ -130,6 +130,7 @@ export default function ReceiptModal({
                   fontSize: 12,
                   lineHeight: 15,
                   whiteSpace: 'pre',
+                  alignSelf: 'center',
                 }}
               />
             )}
