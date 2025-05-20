@@ -5,6 +5,7 @@ import {
   Modal,
   TouchableOpacity,
   ActivityIndicator,
+  ScrollView,
 } from 'react-native';
 import RenderHtml from 'react-native-render-html';
 
@@ -119,12 +120,22 @@ export default function ReceiptModal({
       }}
     >
       <View className='flex-1 justify-center items-center bg-[rgba(0,0,0,0.5)]'>
-        <View className='w-[90%] p-6 bg-white rounded-t-lg shadow-md'>
-          {scannedReceipt && (
-            <RenderHtml contentWidth={1} source={{ html: scannedReceipt }} />
-          )}
+        <View className='flex-1 w-[90%] p-6 mt-6 bg-white rounded-t-lg shadow-md overflow-hidden'>
+          <ScrollView>
+            {scannedReceipt && (
+              <RenderHtml
+                contentWidth={1}
+                source={{ html: scannedReceipt }}
+                baseStyle={{
+                  fontSize: 12,
+                  lineHeight: 15,
+                  whiteSpace: 'pre',
+                }}
+              />
+            )}
+          </ScrollView>
         </View>
-        <View className='bg-white w-[90%] flex flex-row justify-between rounded-b-lg'>
+        <View className='bg-white w-[90%] mb-6 flex flex-row justify-between rounded-b-lg'>
           <TouchableOpacity
             disabled={loading}
             className={`flex-1 w-full bg-gray-200 py-3 ${

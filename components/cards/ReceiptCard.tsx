@@ -15,13 +15,9 @@ import { useGlobalContext } from '@/lib/global-provider';
 export default function ReceiptCard({
   item,
   index,
-  setCurrentReceipt,
-  setShowModal,
 }: {
   item: Receipt;
   index: number;
-  setCurrentReceipt: (value: React.SetStateAction<Receipt | null>) => void;
-  setShowModal: (value: React.SetStateAction<boolean>) => void;
 }) {
   const { setScannedReceipts } = useGlobalContext();
 
@@ -71,16 +67,10 @@ export default function ReceiptCard({
       }
     >
       <View className='flex flex-row w-full p-5 items-center justify-between border rounded-md border-gray-100 mb-2'>
-        <TouchableOpacity
-          className='flex w-[90%] flex-row gap-8 items-center'
-          onPress={() => {
-            setCurrentReceipt(item);
-            setShowModal(true);
-          }}
-        >
+        <View className='flex w-[90%] flex-row gap-8 items-center'>
           <Text className='text-lg font-rubik-bold'>{index + 1}.</Text>
           <Text className='text-lg font-rubik'>{item?.invoiceNumber}</Text>
-        </TouchableOpacity>
+        </View>
         <Image source={icons.receipt} className='w-8 h-8' />
       </View>
     </ReanimatedSwipeable>

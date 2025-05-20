@@ -204,7 +204,7 @@ const Config = () => {
               </View>
 
               {/* Potvrda nove lozinke */}
-              <View className='flex flex-row items-center border border-gray-300 rounded-lg p-4 w-full'>
+              <View className='flex flex-row items-center border border-gray-300 rounded-lg p-4 w-full mb-8'>
                 <Feather name='lock' size={24} color='black' />
                 <TextInput
                   placeholder='Potvrda lozinke'
