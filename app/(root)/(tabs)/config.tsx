@@ -1,13 +1,14 @@
 import { useState } from 'react';
 import {
   ActivityIndicator,
-  SafeAreaView,
+  Platform,
   ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Feather,
   MaterialIcons,
@@ -32,6 +33,11 @@ const Config = () => {
   const [newPassword, setNewPassword] = useState('');
   const [confirmNewPassword, setConfirmNewPassword] = useState('');
   const [contact, setContact] = useState(user?.contact || '');
+
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
+
   const [loading, setLoading] = useState(false);
 
   const handleLogout = async () => {
@@ -136,7 +142,11 @@ const Config = () => {
               contentContainerClassName='flex flex-col gap-5 mt-5'
             >
               {/* Email adresa korisnika - zabranjena promena */}
-              <View className='flex flex-row items-center border bg-gray-100 border-gray-300 rounded-lg p-4 w-full'>
+              <View
+                className={`flex flex-row items-center border bg-gray-100 border-gray-300 rounded-lg px-4 w-full ${
+                  Platform.OS === 'ios' ? 'py-4' : 'py-1'
+                }`}
+              >
                 <Feather name='mail' size={24} color='black' />
                 <TextInput
                   placeholder='Email adresa'
@@ -152,7 +162,11 @@ const Config = () => {
               <View className='border-b-gray-300 border-b'></View>
 
               {/* Naziv firme - zabranjena promena */}
-              <View className='flex flex-row items-center border bg-gray-100 border-gray-300 rounded-lg p-4 w-full'>
+              <View
+                className={`flex flex-row items-center border bg-gray-100 border-gray-300 rounded-lg px-4 w-full ${
+                  Platform.OS === 'ios' ? 'py-4' : 'py-1'
+                }`}
+              >
                 <MaterialCommunityIcons
                   name='office-building-outline'
                   size={24}
@@ -167,7 +181,11 @@ const Config = () => {
               </View>
 
               {/* Kontakt telefon / mail */}
-              <View className='flex flex-row items-center border border-gray-300 rounded-lg p-4 w-full'>
+              <View
+                className={`flex flex-row items-center border border-gray-300 rounded-lg px-4 w-full ${
+                  Platform.OS === 'ios' ? 'py-4' : 'py-1'
+                }`}
+              >
                 <FontAwesome6 name='contact-book' size={24} color='black' />
                 <TextInput
                   placeholder='Kontakt telefon/email adresa'
@@ -180,39 +198,84 @@ const Config = () => {
               <View className='border-b-gray-300 border-b'></View>
 
               {/* Potvrda trenutne lozinke */}
-              <View className='flex flex-row items-center border border-gray-300 rounded-lg p-4 w-full'>
+              <View
+                className={`flex flex-row items-center border border-gray-300 rounded-lg px-4 w-full ${
+                  Platform.OS === 'ios' ? 'py-4' : 'py-1'
+                }`}
+              >
                 <Feather name='lock' size={24} color='black' />
                 <TextInput
                   placeholder='Trenutna lozinka'
-                  secureTextEntry
-                  className='pl-4 font-rubik border-none outline-none w-full'
+                  secureTextEntry={!showCurrentPassword}
+                  className='pl-4 font-rubik border-none outline-none flex-1'
                   defaultValue={currentPassword}
                   onChangeText={(text) => setCurrentPassword(text)}
                 />
+                {currentPassword.length > 0 && (
+                  <TouchableOpacity
+                    onPress={() => setShowCurrentPassword((prev) => !prev)}
+                  >
+                    <Feather
+                      name={showCurrentPassword ? 'eye-off' : 'eye'}
+                      size={22}
+                      color='black'
+                    />
+                  </TouchableOpacity>
+                )}
               </View>
 
               {/* Nova lozinka */}
-              <View className='flex flex-row items-center border border-gray-300 rounded-lg p-4 w-full'>
+              <View
+                className={`flex flex-row items-center border border-gray-300 rounded-lg px-4 w-full ${
+                  Platform.OS === 'ios' ? 'py-4' : 'py-1'
+                }`}
+              >
                 <Feather name='lock' size={24} color='black' />
                 <TextInput
                   placeholder='Nova lozinka'
-                  secureTextEntry
-                  className='pl-4 font-rubik border-none outline-none w-full'
+                  secureTextEntry={!showNewPassword}
+                  className='pl-4 font-rubik border-none outline-none flex-1'
                   defaultValue={newPassword}
                   onChangeText={(text) => setNewPassword(text)}
                 />
+                {newPassword.length > 0 && (
+                  <TouchableOpacity
+                    onPress={() => setShowNewPassword((prev) => !prev)}
+                  >
+                    <Feather
+                      name={showNewPassword ? 'eye-off' : 'eye'}
+                      size={22}
+                      color='black'
+                    />
+                  </TouchableOpacity>
+                )}
               </View>
 
               {/* Potvrda nove lozinke */}
-              <View className='flex flex-row items-center border border-gray-300 rounded-lg p-4 w-full mb-8'>
+              <View
+                className={`flex flex-row items-center border border-gray-300 rounded-lg px-4 w-full ${
+                  Platform.OS === 'ios' ? 'py-4' : 'py-1 mb-8'
+                }`}
+              >
                 <Feather name='lock' size={24} color='black' />
                 <TextInput
                   placeholder='Potvrda lozinke'
-                  secureTextEntry
-                  className='pl-4 font-rubik border-none outline-none w-full'
+                  secureTextEntry={!showConfirmNewPassword}
+                  className='pl-4 font-rubik border-none outline-none flex-1'
                   defaultValue={confirmNewPassword}
                   onChangeText={(text) => setConfirmNewPassword(text)}
                 />
+                {confirmNewPassword.length > 0 && (
+                  <TouchableOpacity
+                    onPress={() => setShowConfirmNewPassword((prev) => !prev)}
+                  >
+                    <Feather
+                      name={showConfirmNewPassword ? 'eye-off' : 'eye'}
+                      size={22}
+                      color='black'
+                    />
+                  </TouchableOpacity>
+                )}
               </View>
             </ScrollView>
 

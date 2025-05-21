@@ -36,7 +36,10 @@ const DatabaseSelector = () => {
         />
         <View className='pl-4 w-full'>
           <Text className='font-rubik'>
-            {selectedDB || 'Serijski broj baze'}
+            {selectedDB
+              ? user.databases.filter((db) => db.serialNum === selectedDB)[0]
+                  .name
+              : 'Serijski broj baze'}
           </Text>
         </View>
       </TouchableOpacity>
@@ -73,7 +76,7 @@ const DatabaseSelector = () => {
                       item.serialNum === selectedDB && 'text-primary-500'
                     }`}
                   >
-                    {item.serialNum}
+                    {item.name}
                   </Text>
                 </TouchableOpacity>
               )}

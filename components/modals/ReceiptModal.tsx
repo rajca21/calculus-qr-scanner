@@ -6,12 +6,15 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   ScrollView,
+  Platform,
+  StyleSheet,
 } from 'react-native';
 import RenderHtml from 'react-native-render-html';
 
 import { customAlert } from '@/lib/helpers';
 import { getLocalStorage } from '@/lib/localAsyncStorage';
 import { useGlobalContext } from '@/lib/global-provider';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function ReceiptModal({
   showModal,
@@ -110,6 +113,11 @@ export default function ReceiptModal({
     }
   };
 
+  const formatReceiptText = (htmlText: string) => {
+    const plainText = htmlText.replace(/<[^>]*>/g, '');
+    return plainText.split('\n').filter((line) => line.trim() !== '');
+  };
+
   return (
     <Modal
       animationType='slide'
@@ -119,56 +127,80 @@ export default function ReceiptModal({
         setShowModal(!showModal);
       }}
     >
-      <View className='flex-1 justify-center items-center bg-[rgba(0,0,0,0.5)]'>
-        <View className='flex-1 w-[90%] p-6 mt-6 bg-white rounded-t-lg shadow-md overflow-hidden'>
-          <ScrollView>
-            {scannedReceipt && (
-              <RenderHtml
-                contentWidth={1}
-                source={{ html: scannedReceipt }}
-                baseStyle={{
-                  fontSize: 12,
-                  lineHeight: 15,
-                  whiteSpace: 'pre',
-                  alignSelf: 'center',
-                }}
-              />
-            )}
-          </ScrollView>
-        </View>
-        <View className='bg-white w-[90%] mb-6 flex flex-row justify-between rounded-b-lg'>
-          <TouchableOpacity
-            disabled={loading}
-            className={`flex-1 w-full bg-gray-200 py-3 ${
-              readOnly ? 'rounded-b-lg' : 'rounded-bl-lg'
-            }`}
-            onPress={handleClose}
-          >
-            <Text className='text-center text-xl font-semibold'>Zatvori</Text>
-          </TouchableOpacity>
-          {!readOnly && (
-            <TouchableOpacity
-              onPress={handleCreateReceipt}
-              disabled={loading}
-              className='flex-1 w-full bg-primary-500 py-3 rounded-br-lg'
+      <SafeAreaView className='flex-1'>
+        <View className='flex-1 justify-center items-center bg-[rgba(0,0,0,0.5)]'>
+          <View className='flex-1 w-[90%] p-6 mt-6 bg-white rounded-t-lg shadow-md overflow-hidden'>
+            <ScrollView
+              contentContainerStyle={styles.scrollContainer}
+              showsVerticalScrollIndicator={false}
             >
-              <Text className='text-center text-white text-xl font-semibold'>
-                {loading ? (
-                  <View className='w-full flex items-center justify-center'>
-                    <ActivityIndicator
-                      className='text-center'
-                      size={'small'}
-                      color={'white'}
-                    />
-                  </View>
-                ) : (
-                  'Učitaj'
-                )}
-              </Text>
+              {scannedReceipt && (
+                <View style={styles.receiptContainer}>
+                  {formatReceiptText(scannedReceipt).map((line, index) => (
+                    <Text
+                      key={index}
+                      style={styles.receiptText}
+                      numberOfLines={1}
+                      ellipsizeMode='clip'
+                    >
+                      {line}
+                    </Text>
+                  ))}
+                </View>
+              )}
+            </ScrollView>
+          </View>
+          <View className='bg-white w-[90%] mb-6 flex flex-row justify-between rounded-b-lg'>
+            <TouchableOpacity
+              disabled={loading}
+              className={`flex-1 w-full bg-gray-200 py-3 ${
+                readOnly ? 'rounded-b-lg' : 'rounded-bl-lg'
+              }`}
+              onPress={handleClose}
+            >
+              <Text className='text-center text-xl font-semibold'>Zatvori</Text>
             </TouchableOpacity>
-          )}
+            {!readOnly && (
+              <TouchableOpacity
+                onPress={handleCreateReceipt}
+                disabled={loading}
+                className='flex-1 w-full bg-primary-500 py-3 rounded-br-lg'
+              >
+                <Text className='text-center text-white text-xl font-semibold'>
+                  {loading ? (
+                    <View className='w-full flex items-center justify-center'>
+                      <ActivityIndicator
+                        className='text-center'
+                        size={'small'}
+                        color={'white'}
+                      />
+                    </View>
+                  ) : (
+                    'Učitaj'
+                  )}
+                </Text>
+              </TouchableOpacity>
+            )}
+          </View>
         </View>
-      </View>
+      </SafeAreaView>
     </Modal>
   );
 }
+
+const styles = StyleSheet.create({
+  scrollContainer: {
+    paddingVertical: 8,
+  },
+  receiptContainer: {
+    width: '100%',
+  },
+  receiptText: {
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+    fontSize: Platform.OS === 'ios' ? 13 : 11,
+    marginHorizontal: 'auto',
+    letterSpacing: 0.2,
+    color: '#000',
+    includeFontPadding: false,
+  },
+});

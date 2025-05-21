@@ -30,6 +30,7 @@ export default function LoginForm({
 }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -155,12 +156,23 @@ export default function LoginForm({
                         <Feather name='lock' size={24} color='black' />
                         <TextInput
                           placeholder='Lozinka'
-                          secureTextEntry
+                          secureTextEntry={!showPassword}
                           textContentType='oneTimeCode'
-                          className='pl-4 font-rubik border-none outline-none w-full'
+                          className='px-4 font-rubik border-none outline-none flex-1'
                           value={password}
                           onChangeText={(text) => setPassword(text)}
                         />
+                        {password.length > 0 && (
+                          <TouchableOpacity
+                            onPress={() => setShowPassword((prev) => !prev)}
+                          >
+                            <Feather
+                              name={showPassword ? 'eye-off' : 'eye'}
+                              size={22}
+                              color='black'
+                            />
+                          </TouchableOpacity>
+                        )}
                       </View>
 
                       {error && (

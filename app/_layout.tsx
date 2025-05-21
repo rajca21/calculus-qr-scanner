@@ -4,6 +4,7 @@ import { useFonts } from 'expo-font';
 
 import './globals.css';
 import GlobalProvider from '@/lib/global-provider';
+// import { removeLocalStorage } from '@/lib/localAsyncStorage';
 
 export default function RootLayout() {
   const [fontsLoaded] = useFonts({
@@ -16,6 +17,7 @@ export default function RootLayout() {
   });
 
   useEffect(() => {
+    // removeLocalStorage(); - manual reset
     if (fontsLoaded) {
       SplashScreen.hideAsync();
     }

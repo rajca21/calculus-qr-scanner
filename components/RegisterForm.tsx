@@ -35,6 +35,8 @@ export default function RegisterForm({
   const [pib, setPib] = useState('');
   const [companyName, setCompanyName] = useState('');
   const [contact, setContact] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -178,12 +180,23 @@ export default function RegisterForm({
                       <Feather name='lock' size={24} color='black' />
                       <TextInput
                         placeholder='Lozinka *'
-                        secureTextEntry
+                        secureTextEntry={!showPassword}
                         textContentType='oneTimeCode'
-                        className='pl-4 font-rubik border-none outline-none w-full'
+                        className='px-4 font-rubik border-none outline-none flex-1'
                         value={password}
                         onChangeText={(text) => setPassword(text)}
                       />
+                      {password.length > 0 && (
+                        <TouchableOpacity
+                          onPress={() => setShowPassword((prev) => !prev)}
+                        >
+                          <Feather
+                            name={showPassword ? 'eye-off' : 'eye'}
+                            size={22}
+                            color='black'
+                          />
+                        </TouchableOpacity>
+                      )}
                     </View>
 
                     <View
@@ -194,12 +207,25 @@ export default function RegisterForm({
                       <Feather name='lock' size={24} color='black' />
                       <TextInput
                         placeholder='Potvrda lozinke *'
-                        secureTextEntry
+                        secureTextEntry={!showConfirmPassword}
                         textContentType='oneTimeCode'
-                        className='pl-4 font-rubik border-none outline-none w-full'
+                        className='px-4 font-rubik border-none outline-none flex-1'
                         value={confirmPassword}
                         onChangeText={(text) => setConfirmPassword(text)}
                       />
+                      {confirmPassword.length > 0 && (
+                        <TouchableOpacity
+                          onPress={() =>
+                            setShowConfirmPassword((prev) => !prev)
+                          }
+                        >
+                          <Feather
+                            name={showConfirmPassword ? 'eye-off' : 'eye'}
+                            size={22}
+                            color='black'
+                          />
+                        </TouchableOpacity>
+                      )}
                     </View>
 
                     <View

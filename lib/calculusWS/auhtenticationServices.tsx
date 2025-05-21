@@ -120,11 +120,10 @@ export const getUserById = async (
         companyName: res.data.user.nazivfirme,
         contact: res.data.user?.Kontakt || '',
         databases: res?.data?.user?.SerijskiBrojevi
-          ? res.data.user.SerijskiBrojevi.split(',').map(
-              (serialNum: string) => ({
-                serialNum: serialNum.trim(),
-              })
-            )
+          ? res.data.user.SerijskiBrojevi.split(',').map((db: string) => ({
+              serialNum: db.split('-')[0],
+              name: db.split('-')[1],
+            }))
           : [],
         verified: res?.data?.user?.SerijskiBrojevi === '' ? false : true,
         selectedDB: null,

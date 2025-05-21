@@ -8,6 +8,7 @@ import {
   FlatList,
   ActivityIndicator,
   ScrollView,
+  Platform,
 } from 'react-native';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import RenderHTML from 'react-native-render-html';
@@ -17,6 +18,7 @@ import { useGlobalContext } from '@/lib/global-provider';
 import { customAlert } from '@/lib/helpers';
 import { exportReceipts } from '@/lib/calculusWS/receiptServices';
 import ReceiptCard from '../cards/ReceiptCard';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function ReceiptsListModal({
   receiptsVisible,
@@ -79,6 +81,11 @@ export default function ReceiptsListModal({
     setExpandedReceiptId((prev) => (prev === receiptId ? null : receiptId));
   };
 
+  const formatReceiptText = (htmlText: string) => {
+    const plainText = htmlText.replace(/<[^>]*>/g, '');
+    return plainText.split('\n').filter((line) => line.trim() !== '');
+  };
+
   return (
     <Modal
       animationType='slide'
@@ -86,74 +93,86 @@ export default function ReceiptsListModal({
       visible={receiptsVisible}
       onRequestClose={() => setReceiptsVisible(false)}
     >
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
-          <TouchableOpacity
-            style={styles.closeModalButton}
-            onPress={() => setReceiptsVisible(false)}
-          >
-            <AntDesign
-              name='closecircleo'
-              size={24}
-              color='black'
-              className='m-2'
-            />
-          </TouchableOpacity>
+      <SafeAreaView className='flex-1'>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <TouchableOpacity
+              style={styles.closeModalButton}
+              onPress={() => setReceiptsVisible(false)}
+            >
+              <AntDesign
+                name='closecircleo'
+                size={24}
+                color='black'
+                className='m-2'
+              />
+            </TouchableOpacity>
 
-          <Text style={styles.title}>Skenirani računi</Text>
+            <Text style={styles.title}>Skenirani računi</Text>
 
-          <GestureHandlerRootView className='bg-white h-full'>
-            <FlatList
-              data={scannedReceipts}
-              keyExtractor={(item) => item.docId}
-              contentContainerStyle={{ paddingBottom: 100 }}
-              className='h-screen mt-5'
-              renderItem={({ item, index }) => (
-                <View>
-                  <TouchableOpacity onPress={() => handleCardPress(item.docId)}>
-                    <ReceiptCard item={item} index={index} />
-                  </TouchableOpacity>
-                  {expandedReceiptId === item.docId && (
-                    <View style={styles.dropdownContent}>
-                      <ScrollView>
-                        {item.scannedReceipt && (
-                          <RenderHTML
-                            contentWidth={1}
-                            source={{ html: item.scannedReceipt }}
-                            baseStyle={{
-                              fontSize: 12,
-                              lineHeight: 15,
-                              whiteSpace: 'pre',
-                            }}
-                          />
-                        )}
-                      </ScrollView>
-                    </View>
-                  )}
-                </View>
-              )}
-            />
-          </GestureHandlerRootView>
-          <TouchableOpacity
-            onPress={exportScannedReceipts}
-            className='mb-10 bg-primary-500 w-full p-3 rounded-full mt-2'
-          >
-            <Text className='text-center text-white font-bold text-lg'>
-              {loading ? (
-                <View className='w-full flex items-center justify-center'>
-                  <ActivityIndicator
-                    className='text-center'
-                    size={'small'}
-                    color={'white'}
-                  />
-                </View>
-              ) : (
-                'Izvezi račune'
-              )}
-            </Text>
-          </TouchableOpacity>
+            <GestureHandlerRootView className='bg-white h-full'>
+              <FlatList
+                data={scannedReceipts}
+                keyExtractor={(item) => item.docId}
+                contentContainerStyle={{ paddingBottom: 100 }}
+                className='h-screen mt-5'
+                renderItem={({ item, index }) => (
+                  <View>
+                    <TouchableOpacity
+                      onPress={() => handleCardPress(item.docId)}
+                    >
+                      <ReceiptCard item={item} index={index} />
+                    </TouchableOpacity>
+                    {expandedReceiptId === item.docId && (
+                      <View style={styles.dropdownContent}>
+                        <ScrollView
+                          contentContainerStyle={styles.scrollContainer}
+                          showsVerticalScrollIndicator={false}
+                        >
+                          {item.scannedReceipt && (
+                            <View style={styles.receiptContainer}>
+                              {formatReceiptText(item.scannedReceipt).map(
+                                (line, index) => (
+                                  <Text
+                                    key={index}
+                                    style={styles.receiptText}
+                                    numberOfLines={1}
+                                    ellipsizeMode='clip'
+                                  >
+                                    {line}
+                                  </Text>
+                                )
+                              )}
+                            </View>
+                          )}
+                        </ScrollView>
+                      </View>
+                    )}
+                  </View>
+                )}
+              />
+            </GestureHandlerRootView>
+            <TouchableOpacity
+              onPress={exportScannedReceipts}
+              className='bg-primary-500 w-full p-3 rounded-full mt-2'
+            >
+              <Text className='text-center text-white font-bold text-lg'>
+                {loading ? (
+                  <View className='w-full flex items-center justify-center'>
+                    <ActivityIndicator
+                      className='text-center'
+                      size={'small'}
+                      color={'white'}
+                    />
+                  </View>
+                ) : (
+                  'Izvezi račune'
+                )}
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
+      </SafeAreaView>
     </Modal>
   );
 }
@@ -186,5 +205,19 @@ const styles = StyleSheet.create({
     backgroundColor: '#f5f5f5',
     marginBottom: 8,
     borderRadius: 8,
+  },
+  scrollContainer: {
+    paddingVertical: 8,
+  },
+  receiptContainer: {
+    width: '100%',
+  },
+  receiptText: {
+    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
+    fontSize: Platform.OS === 'ios' ? 13 : 11,
+    marginHorizontal: 'auto',
+    letterSpacing: 0.2,
+    color: '#000',
+    includeFontPadding: false,
   },
 });

@@ -1,5 +1,12 @@
 import { useState } from 'react';
-import { Image, StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import {
+  Image,
+  Platform,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import {
   BarcodeScanningResult,
   CameraType,
@@ -221,7 +228,7 @@ const styles = StyleSheet.create({
   },
   flipButton: {
     position: 'absolute',
-    bottom: 100,
+    bottom: Platform.OS === 'ios' ? 100 : 120,
     right: 20,
     borderRadius: 20,
     padding: 10,
@@ -230,7 +237,7 @@ const styles = StyleSheet.create({
   },
   showReceiptsButton: {
     position: 'absolute',
-    bottom: 100,
+    bottom: Platform.OS === 'ios' ? 100 : 120,
     left: 20,
     borderRadius: 20,
     padding: 10,
@@ -257,7 +264,8 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
     backgroundColor: '#2368fd',
     borderRadius: 8,
-    padding: 16,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,

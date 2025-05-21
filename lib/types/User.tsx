@@ -5,6 +5,7 @@ export interface User {
   contact: string;
   databases: {
     serialNum: string;
+    name: string;
   }[];
   selectedDB: string | null;
   sessionToken: string;
