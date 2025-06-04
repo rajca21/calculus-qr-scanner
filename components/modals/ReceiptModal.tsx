@@ -5,7 +5,6 @@ import {
   Modal,
   TouchableOpacity,
   ActivityIndicator,
-  ScrollView,
 } from 'react-native';
 
 import { customAlert } from '@/lib/helpers';
@@ -17,7 +16,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 interface ReceiptModalProps {
   showModal: boolean;
   setShowModal: (value: React.SetStateAction<boolean>) => void;
-  scannedReceipt: string;
   scannedData: string;
   setScannedData: (value: React.SetStateAction<string>) => void;
   setScanned: (value: React.SetStateAction<boolean>) => void;
@@ -32,7 +30,6 @@ interface ReceiptModalProps {
 export default function ReceiptModal({
   showModal,
   setShowModal,
-  scannedReceipt,
   scannedData,
   setScannedData,
   setScanned,
@@ -69,7 +66,7 @@ export default function ReceiptModal({
     const docId = Date.now().toString();
     const user = await getLocalStorage('userDetails');
 
-    if (!scannedReceipt || !scannedData || !scannedInvoiceNumber) {
+    if (!scannedData || !scannedInvoiceNumber) {
       return customAlert('Greška!', 'Greška prilikom učitavanja računa!');
     }
     if (!user) {
@@ -103,7 +100,6 @@ export default function ReceiptModal({
         ...scannedReceipts,
         {
           docId: docId,
-          scannedReceipt: scannedReceipt,
           url: scannedData,
           userId: user.uid,
           exported: false,

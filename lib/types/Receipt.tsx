@@ -1,6 +1,5 @@
 export interface Receipt {
   docId: string;
-  scannedReceipt: string;
   url: string;
   userId: string;
   exported: boolean;

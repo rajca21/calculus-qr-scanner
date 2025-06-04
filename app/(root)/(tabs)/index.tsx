@@ -31,7 +31,6 @@ export default function Index() {
   const [scanned, setScanned] = useState(false);
   const [scannedData, setScannedData] = useState<string>('');
   const [showModal, setShowModal] = useState<boolean>(false);
-  const [scannedReceipt, setScannedReceipt] = useState<string>('');
   const [scannedInvoiceNumber, setScannedInvoiceNumber] = useState<string>('');
   const [scannedReceiptDataFromTC, setScannedReceiptDataFromTC] =
     useState<ReceiptDataFromTC>({
@@ -93,10 +92,6 @@ export default function Index() {
 
       setScannedReceiptDataFromTC(receiptData);
       setScannedInvoiceNumber(receiptData.invoiceNumber);
-
-      let preTagContent = htmlText.match(/<pre[^>]*>[\s\S]*?<\/pre>/i)?.[0];
-
-      setScannedReceipt(preTagContent);
       setShowModal(true);
     } catch (error) {
       customAlert(
@@ -170,7 +165,6 @@ export default function Index() {
           <ReceiptModal
             showModal={showModal}
             setShowModal={setShowModal}
-            scannedReceipt={scannedReceipt}
             scannedData={scannedData}
             setScannedData={setScannedData}
             setScanned={setScanned}

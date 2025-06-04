@@ -116,7 +116,7 @@ export default function ReceiptsListModal({
                     </TouchableOpacity>
                     {expandedReceiptId === item.docId && (
                       <View className='px-4 py-2 bg-gray-50 rounded-lg'>
-                        {item.scannedReceipt && (
+                        {item?.dataFromTC?.invoiceNumber && (
                           <View>
                             <View className='flex flex-col w-full'>
                               {item?.dataFromTC?.shopName && (
@@ -137,7 +137,7 @@ export default function ReceiptsListModal({
                                   </Text>
                                 </View>
                               )}
-                              {item?.dataFromTC?.totalAmount && (
+                              {item?.dataFromTC?.sdcDateTime && (
                                 <View className='flex flex-row items-center justify-between'>
                                   <Text className='font-rubik-bold'>
                                     PFR vreme:{' '}
