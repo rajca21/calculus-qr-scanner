@@ -18,8 +18,9 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
 import images from '@/assets/constants/images';
-import { customAlert } from '@/lib/helpers';
+import { customAlert, getReceiptDataFromTC } from '@/lib/helpers';
 import { useGlobalContext } from '@/lib/global-provider';
+import { ReceiptDataFromTC } from '@/lib/types/Receipt';
 import ReceiptModal from '@/components/modals/ReceiptModal';
 import ReceiptsListModal from '@/components/modals/ReceiptsListModal';
 
@@ -32,6 +33,14 @@ export default function Index() {
   const [showModal, setShowModal] = useState<boolean>(false);
   const [scannedReceipt, setScannedReceipt] = useState<string>('');
   const [scannedInvoiceNumber, setScannedInvoiceNumber] = useState<string>('');
+  const [scannedReceiptDataFromTC, setScannedReceiptDataFromTC] =
+    useState<ReceiptDataFromTC>({
+      invoiceNumber: '',
+      shopName: '',
+      totalAmount: '',
+      sdcDateTime: '',
+      monospaceContent: '',
+    });
   const [cameraPermission, requestPermission] = useCameraPermissions();
 
   const { scannedReceipts } = useGlobalContext();
@@ -74,32 +83,21 @@ export default function Index() {
       const response = await fetch(url);
       const htmlText = await response.text();
 
-      const invoiceNumber = htmlText.match(
-        /<span id="invoiceNumberLabel"[^>]*>([\s\S]*?)<\/span>/i
-      )?.[1];
-      if (invoiceNumber && invoiceNumber.length > 0) {
-        setScannedInvoiceNumber(invoiceNumber?.trim());
-      }
-
-      let preTagContent = htmlText.match(/<pre[^>]*>[\s\S]*?<\/pre>/i)?.[0];
-
-      if (preTagContent) {
-        const sanitizedPreTagContent = preTagContent.replace(
-          /<img[^>]*>/gi,
-          ''
-        );
-        preTagContent = sanitizedPreTagContent;
-      }
-
-      if (preTagContent) {
-        setScannedReceipt(preTagContent);
-        setShowModal(true);
-      } else {
-        customAlert(
+      const receiptData = getReceiptDataFromTC(htmlText);
+      if (!receiptData) {
+        return customAlert(
           'Upozorenje!',
           'Došlo je do promene strukture na sajtu poreske uprave. Obratite se korisničkoj podršci'
         );
       }
+
+      setScannedReceiptDataFromTC(receiptData);
+      setScannedInvoiceNumber(receiptData.invoiceNumber);
+
+      let preTagContent = htmlText.match(/<pre[^>]*>[\s\S]*?<\/pre>/i)?.[0];
+
+      setScannedReceipt(preTagContent);
+      setShowModal(true);
     } catch (error) {
       customAlert(
         'Greška!',
@@ -173,12 +171,13 @@ export default function Index() {
             showModal={showModal}
             setShowModal={setShowModal}
             scannedReceipt={scannedReceipt}
-            readOnly={false}
             scannedData={scannedData}
             setScannedData={setScannedData}
             setScanned={setScanned}
             scannedInvoiceNumber={scannedInvoiceNumber}
             setScannedInvoiceNumber={setScannedInvoiceNumber}
+            scannedReceiptDataFromTC={scannedReceiptDataFromTC}
+            setScannedReceiptDataFromTC={setScannedReceiptDataFromTC}
           />
         )}
       </View>

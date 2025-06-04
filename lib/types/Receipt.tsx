@@ -6,8 +6,17 @@ export interface Receipt {
   exported: boolean;
   invoiceNumber: string;
   createdAt: Date;
+  dataFromTC?: ReceiptDataFromTC;
 }
 
 export interface ReceiptView extends Receipt {
   checked: boolean;
+}
+
+export interface ReceiptDataFromTC {
+  invoiceNumber?: string;
+  shopName?: string;
+  totalAmount?: string;
+  sdcDateTime?: string;
+  monospaceContent?: string;
 }
