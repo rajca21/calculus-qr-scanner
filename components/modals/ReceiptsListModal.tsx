@@ -7,18 +7,15 @@ import {
   TouchableOpacity,
   FlatList,
   ActivityIndicator,
-  ScrollView,
-  Platform,
 } from 'react-native';
 import AntDesign from '@expo/vector-icons/AntDesign';
-import RenderHTML from 'react-native-render-html';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useGlobalContext } from '@/lib/global-provider';
 import { customAlert } from '@/lib/helpers';
 import { exportReceipts } from '@/lib/calculusWS/receiptServices';
 import ReceiptCard from '../cards/ReceiptCard';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
 export default function ReceiptsListModal({
   receiptsVisible,
@@ -72,18 +69,12 @@ export default function ReceiptsListModal({
         setReceiptsVisible(false);
       }
     } catch (error) {
-      console.log(error);
       setLoading(false);
     }
   };
 
   const handleCardPress = (receiptId: string) => {
     setExpandedReceiptId((prev) => (prev === receiptId ? null : receiptId));
-  };
-
-  const formatReceiptText = (htmlText: string) => {
-    const plainText = htmlText.replace(/<[^>]*>/g, '');
-    return plainText.split('\n').filter((line) => line.trim() !== '');
   };
 
   return (
@@ -124,28 +115,41 @@ export default function ReceiptsListModal({
                       <ReceiptCard item={item} index={index} />
                     </TouchableOpacity>
                     {expandedReceiptId === item.docId && (
-                      <View style={styles.dropdownContent}>
-                        <ScrollView
-                          contentContainerStyle={styles.scrollContainer}
-                          showsVerticalScrollIndicator={false}
-                        >
-                          {item.scannedReceipt && (
-                            <View style={styles.receiptContainer}>
-                              {formatReceiptText(item.scannedReceipt).map(
-                                (line, index) => (
-                                  <Text
-                                    key={index}
-                                    style={styles.receiptText}
-                                    numberOfLines={1}
-                                    ellipsizeMode='clip'
-                                  >
-                                    {line}
+                      <View className='px-4 py-2 bg-gray-50 rounded-lg'>
+                        {item?.dataFromTC?.invoiceNumber && (
+                          <View>
+                            <View className='flex flex-col w-full'>
+                              {item?.dataFromTC?.shopName && (
+                                <View className='flex flex-row items-center justify-between'>
+                                  <Text className='font-rubik-bold'>POS: </Text>
+                                  <Text className='font-rubik text-base'>
+                                    {item.dataFromTC.shopName}
                                   </Text>
-                                )
+                                </View>
+                              )}
+                              {item?.dataFromTC?.totalAmount && (
+                                <View className='flex flex-row items-center justify-between'>
+                                  <Text className='font-rubik-bold'>
+                                    Ukupan iznos:{' '}
+                                  </Text>
+                                  <Text className='font-rubik text-base'>
+                                    {item.dataFromTC.totalAmount}
+                                  </Text>
+                                </View>
+                              )}
+                              {item?.dataFromTC?.sdcDateTime && (
+                                <View className='flex flex-row items-center justify-between'>
+                                  <Text className='font-rubik-bold'>
+                                    PFR vreme:{' '}
+                                  </Text>
+                                  <Text className='font-rubik text-base'>
+                                    {item.dataFromTC.sdcDateTime}
+                                  </Text>
+                                </View>
                               )}
                             </View>
-                          )}
-                        </ScrollView>
+                          </View>
+                        )}
                       </View>
                     )}
                   </View>
@@ -197,27 +201,5 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: 'bold',
     marginTop: -24,
-  },
-  dropdownContent: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#f5f5f5',
-    marginBottom: 8,
-    borderRadius: 8,
-  },
-  scrollContainer: {
-    paddingVertical: 8,
-  },
-  receiptContainer: {
-    width: '100%',
-  },
-  receiptText: {
-    fontFamily: Platform.OS === 'ios' ? 'Courier' : 'monospace',
-    fontSize: Platform.OS === 'ios' ? 13 : 11,
-    marginHorizontal: 'auto',
-    letterSpacing: 0.2,
-    color: '#000',
-    includeFontPadding: false,
   },
 });
