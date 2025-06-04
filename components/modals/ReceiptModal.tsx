@@ -140,26 +140,32 @@ export default function ReceiptModal({
               {scannedData && (
                 <View className='flex flex-col w-full'>
                   <Text className='font-rubik-bold text-lg mb-4 text-center'>
-                    Račun {scannedReceiptDataFromTC.invoiceNumber}
+                    Račun {scannedInvoiceNumber}
                   </Text>
-                  <View className='flex flex-row items-center justify-between'>
-                    <Text className='font-rubik-bold'>POS: </Text>
-                    <Text className='font-rubik text-base'>
-                      {scannedReceiptDataFromTC.shopName}
-                    </Text>
-                  </View>
-                  <View className='flex flex-row items-center justify-between'>
-                    <Text className='font-rubik-bold'>Ukupan iznos: </Text>
-                    <Text className='font-rubik text-base'>
-                      {scannedReceiptDataFromTC.totalAmount}
-                    </Text>
-                  </View>
-                  <View className='flex flex-row items-center justify-between'>
-                    <Text className='font-rubik-bold'>PFR vreme: </Text>
-                    <Text className='font-rubik text-base'>
-                      {scannedReceiptDataFromTC.sdcDateTime}
-                    </Text>
-                  </View>
+                  {scannedReceiptDataFromTC?.shopName && (
+                    <View className='flex flex-row items-center justify-between'>
+                      <Text className='font-rubik-bold'>POS: </Text>
+                      <Text className='font-rubik text-base'>
+                        {scannedReceiptDataFromTC?.shopName}
+                      </Text>
+                    </View>
+                  )}
+                  {scannedReceiptDataFromTC?.totalAmount && (
+                    <View className='flex flex-row items-center justify-between'>
+                      <Text className='font-rubik-bold'>Ukupan iznos: </Text>
+                      <Text className='font-rubik text-base'>
+                        {scannedReceiptDataFromTC.totalAmount}
+                      </Text>
+                    </View>
+                  )}
+                  {scannedReceiptDataFromTC?.sdcDateTime && (
+                    <View className='flex flex-row items-center justify-between'>
+                      <Text className='font-rubik-bold'>PFR vreme: </Text>
+                      <Text className='font-rubik text-base'>
+                        {scannedReceiptDataFromTC.sdcDateTime}
+                      </Text>
+                    </View>
+                  )}
                 </View>
               )}
             </View>
