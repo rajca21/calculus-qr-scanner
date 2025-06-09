@@ -12,6 +12,8 @@ interface GlobalContextType {
   setLoading: React.Dispatch<React.SetStateAction<boolean>>;
   scannedReceipts: Receipt[];
   setScannedReceipts: React.Dispatch<React.SetStateAction<Receipt[]>>;
+  cameraOpen: boolean;
+  setCameraOpen: React.Dispatch<React.SetStateAction<boolean>>;
 }
 
 const GlobalContext = createContext<GlobalContextType | undefined>(undefined);
@@ -25,6 +27,7 @@ export const GlobalProvider = ({ children }: GlobalProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(false);
   const [scannedReceipts, setScannedReceipts] = useState([]);
+  const [cameraOpen, setCameraOpen] = useState(false);
 
   return (
     <GlobalContext.Provider
@@ -37,6 +40,8 @@ export const GlobalProvider = ({ children }: GlobalProviderProps) => {
         setLoading,
         scannedReceipts,
         setScannedReceipts,
+        cameraOpen,
+        setCameraOpen,
       }}
     >
       {children}

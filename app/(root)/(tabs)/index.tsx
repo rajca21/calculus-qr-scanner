@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useCallback, useState } from 'react';
 import {
   Image,
   Platform,
@@ -13,6 +13,7 @@ import {
   CameraView,
   useCameraPermissions,
 } from 'expo-camera';
+import { useFocusEffect } from 'expo-router';
 import AntDesign from '@expo/vector-icons/AntDesign';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -26,9 +27,9 @@ import ReceiptsListModal from '@/components/modals/ReceiptsListModal';
 
 export default function Index() {
   const [facing, setFacing] = useState<CameraType>('back');
-  const [cameraOpen, setCameraOpen] = useState(false);
-  const [receiptsVisible, setReceiptsVisible] = useState(false);
-  const [scanned, setScanned] = useState(false);
+  const [receiptsVisible, setReceiptsVisible] = useState<boolean>(false);
+  const [scanned, setScanned] = useState<boolean>(false);
+  const [properScanned, setProperScanned] = useState<boolean>(false);
   const [scannedData, setScannedData] = useState<string>('');
   const [showModal, setShowModal] = useState<boolean>(false);
   const [scannedInvoiceNumber, setScannedInvoiceNumber] = useState<string>('');
@@ -42,14 +43,16 @@ export default function Index() {
     });
   const [cameraPermission, requestPermission] = useCameraPermissions();
 
-  const { scannedReceipts } = useGlobalContext();
+  const { scannedReceipts, cameraOpen, setCameraOpen } = useGlobalContext();
 
   async function openCamera() {
     if (!cameraPermission || cameraPermission.status !== 'granted') {
       const { status } = await requestPermission();
       if (status !== 'granted') {
-        alert('Camera permission is required to use this feature.');
-        return;
+        return customAlert(
+          'Upozorenje!',
+          'Aplikacija nema dozvolu za korišćenje kamere. Molimo Vas da omogućite pristup kameri u podešavanjima.'
+        );
       }
     }
     setCameraOpen(true);
@@ -62,17 +65,21 @@ export default function Index() {
   const handleBarcodeScanned = (qrCodeResults: BarcodeScanningResult) => {
     const url = qrCodeResults.data;
     if (url && !url.startsWith('https://suf.purs.gov.rs')) {
-      return customAlert(
+      setScanned(true); // Temporarily disable scanning
+      customAlert(
         'Upozorenje!',
         'Molimo Vas skenirajte QR kod sa fiskalnog računa.'
       );
+      setTimeout(() => setScanned(false), 2000); // Re-enable after 2 seconds
+      return;
     }
-    setScanned(true);
+    setProperScanned(true);
     setScannedData(url);
   };
 
   const dismiss = () => {
     setScanned(false);
+    setProperScanned(false);
     setScannedData('');
   };
 
@@ -100,6 +107,14 @@ export default function Index() {
       );
     }
   };
+
+  useFocusEffect(
+    useCallback(() => {
+      return () => {
+        setCameraOpen(false);
+      };
+    }, [setCameraOpen])
+  );
 
   if (cameraOpen) {
     return (
@@ -150,7 +165,7 @@ export default function Index() {
           <Text style={styles.scanText}>Skenirajte QR kod</Text>
         </View>
 
-        {scanned && (
+        {properScanned && (
           <View style={styles.scannedResult}>
             <TouchableOpacity onPress={handleReadBarcode}>
               <Text style={styles.scannedResultText}>
@@ -168,6 +183,7 @@ export default function Index() {
             scannedData={scannedData}
             setScannedData={setScannedData}
             setScanned={setScanned}
+            setProperScanned={setProperScanned}
             scannedInvoiceNumber={scannedInvoiceNumber}
             setScannedInvoiceNumber={setScannedInvoiceNumber}
             scannedReceiptDataFromTC={scannedReceiptDataFromTC}
