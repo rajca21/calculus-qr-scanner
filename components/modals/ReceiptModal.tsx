@@ -19,6 +19,7 @@ interface ReceiptModalProps {
   scannedData: string;
   setScannedData: (value: React.SetStateAction<string>) => void;
   setScanned: (value: React.SetStateAction<boolean>) => void;
+  setProperScanned?: (value: React.SetStateAction<boolean>) => void;
   scannedInvoiceNumber: string;
   setScannedInvoiceNumber: (value: React.SetStateAction<string>) => void;
   scannedReceiptDataFromTC?: ReceiptDataFromTC;
@@ -33,6 +34,7 @@ export default function ReceiptModal({
   scannedData,
   setScannedData,
   setScanned,
+  setProperScanned,
   scannedInvoiceNumber,
   setScannedInvoiceNumber,
   scannedReceiptDataFromTC,
@@ -44,12 +46,14 @@ export default function ReceiptModal({
 
   const handleClose = () => {
     setScanned(false);
+    setProperScanned(false);
     setScannedData('');
     setShowModal(false);
   };
 
   const resetState = () => {
     setScanned(false);
+    setProperScanned(false);
     setScannedData('');
     setScannedInvoiceNumber('');
     setScannedReceiptDataFromTC({
