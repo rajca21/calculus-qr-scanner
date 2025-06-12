@@ -41,16 +41,20 @@ const Config = () => {
   const [loading, setLoading] = useState(false);
 
   const handleLogout = async () => {
-    setLoading(true);
-    const res = await logout(user.uid, user.sessionToken);
-    if (res === 'success') {
-      await removeLocalStorage();
+    try {
+      setLoading(true);
+      const res = await logout(user.uid, user.sessionToken);
+      if (res === 'success') {
+        await removeLocalStorage();
+      }
+    } catch (error) {
+      //
+    } finally {
       setUser(null);
       setIsLoggedIn(false);
       setLoading(false);
       router.replace('/sign-in');
     }
-    setLoading(false);
   };
 
   const updateUserInfo = async () => {

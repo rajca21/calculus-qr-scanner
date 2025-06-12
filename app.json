@@ -2,7 +2,7 @@
   "expo": {
     "name": "Calculus Čitač Fiskala",
     "slug": "calculus-citac-fiskala",
-    "owner": "nikolacalculus",
+    "owner": "nikolacalculusmd",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
@@ -67,7 +67,7 @@
         "origin": false
       },
       "eas": {
-        "projectId": "c2649e65-1a5d-46ae-b5e2-666d11cd5bab"
+        "projectId": "0caab71a-4d64-41b0-bef0-4f13c675c7c4"
       }
     }
   }
