@@ -142,14 +142,6 @@ export default function ReceiptModal({
                   <Text className='font-rubik-bold text-lg mb-4 text-center'>
                     Račun {scannedInvoiceNumber}
                   </Text>
-                  {scannedReceiptDataFromTC?.shopName && (
-                    <View className='flex flex-row items-center justify-between'>
-                      <Text className='font-rubik-bold'>POS: </Text>
-                      <Text className='font-rubik text-base'>
-                        {scannedReceiptDataFromTC?.shopName}
-                      </Text>
-                    </View>
-                  )}
                   {scannedReceiptDataFromTC?.totalAmount && (
                     <View className='flex flex-row items-center justify-between'>
                       <Text className='font-rubik-bold'>Ukupan iznos: </Text>

@@ -39,15 +39,6 @@ export const getReceiptDataFromTC = (
     return null;
   }
 
-  const shopName = htmlText.match(
-    /<span id="shopFullNameLabel"[^>]*>([\s\S]*?)<\/span>/i
-  )?.[1];
-  if (shopName && shopName.length > 0) {
-    receiptDataFromTC.shopName = shopName.trim();
-  } else {
-    return null;
-  }
-
   const totalAmount = htmlText.match(
     /<span id="totalAmountLabel"[^>]*>([\s\S]*?)<\/span>/i
   )?.[1];

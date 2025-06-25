@@ -2,12 +2,9 @@ import axios from 'axios';
 import { User } from '../types/User';
 import { customAlert } from '../helpers';
 import { removeLocalStorage } from '../localAsyncStorage';
-import { useGlobalContext } from '../global-provider';
 
 const API_AUTH_URL = 'https://calculus-qr-scanner-api.onrender.com/api/auth';
 const API_USERS_URL = 'https://calculus-qr-scanner-api.onrender.com/api/users';
-
-const { setUser, setIsLoggedIn } = useGlobalContext();
 
 // # REGISTER USER
 export const register = async (
@@ -95,17 +92,12 @@ export const logout = async (
 
     if (res.status === 200) {
       return 'success';
-    } else if (res.status === 400) {
-      customAlert('Upozorenje', res.data);
-      return null;
     } else {
       throw new Error('Greška prilikom odjavljivanja korisnika');
     }
   } catch (error) {
     customAlert('Greška', 'Greška prilikom odjavljivanja korisnika!');
     await removeLocalStorage();
-    setUser(null);
-    setIsLoggedIn(false);
     return null;
   }
 };
