@@ -10,7 +10,6 @@ describe('getReceiptDataFromTC parses HTML receipt data correctly', () => {
   it('should parse valid HTML receipt data correctly', () => {
     const validHtml = `
         <span id="invoiceNumberLabel">123456</span>
-        <span id="shopFullNameLabel">Test Shop</span>
         <span id="totalAmountLabel">100.00</span>
         <span id="sdcDateTimeLabel">2025-04-06 12:00:00</span>
         <pre><img src="image.jpg" />Monospace content here</pre>
@@ -18,7 +17,6 @@ describe('getReceiptDataFromTC parses HTML receipt data correctly', () => {
     const result = getReceiptDataFromTC(validHtml);
     expect(result).toEqual({
       invoiceNumber: '123456',
-      shopName: 'Test Shop',
       totalAmount: '100.00',
       sdcDateTime: '2025-04-06 12:00:00',
       monospaceContent: '<pre>Monospace content here</pre>',
@@ -28,7 +26,6 @@ describe('getReceiptDataFromTC parses HTML receipt data correctly', () => {
   it('should return null for any missing values', () => {
     const htmlWithMissingFields = `
         <span id="invoiceNumberLabel">123456</span>
-        <span id="shopFullNameLabel"></span>
         <span id="totalAmountLabel">100.00</span>
         <span id="sdcDateTimeLabel"></span>
         <pre>Monospace content here</pre>

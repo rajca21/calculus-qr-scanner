@@ -119,14 +119,6 @@ export default function ReceiptsListModal({
                         {item?.dataFromTC?.invoiceNumber && (
                           <View>
                             <View className='flex flex-col w-full'>
-                              {item?.dataFromTC?.shopName && (
-                                <View className='flex flex-row items-center justify-between'>
-                                  <Text className='font-rubik-bold'>POS: </Text>
-                                  <Text className='font-rubik text-base'>
-                                    {item.dataFromTC.shopName}
-                                  </Text>
-                                </View>
-                              )}
                               {item?.dataFromTC?.totalAmount && (
                                 <View className='flex flex-row items-center justify-between'>
                                   <Text className='font-rubik-bold'>
