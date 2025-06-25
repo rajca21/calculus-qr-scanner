@@ -17,6 +17,7 @@ describe('getReceiptDataFromTC parses HTML receipt data correctly', () => {
     const result = getReceiptDataFromTC(validHtml);
     expect(result).toEqual({
       invoiceNumber: '123456',
+      shopName: '',
       totalAmount: '100.00',
       sdcDateTime: '2025-04-06 12:00:00',
       monospaceContent: '<pre>Monospace content here</pre>',
