@@ -1,50 +1,44 @@
-# Welcome to your Expo app 👋
+# 📲 Calculus QR Scanner
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+**Calculus QR Scanner** is a mobile application for scanning and analyzing fiscal receipts in Serbia. It connects directly to Calculus ERP system, allowing seamless integration, synchronization, and real-time access to scanned receipt data.
 
-## Get started
+## 🔗 Google Play Store
 
-1. Install dependencies
+👉 **Download now**: [Calculus Čitač Fiskala on Google Play](https://play.google.com/store/apps/details?id=com.calculus.calculuscitacfiskala)
 
-   ```bash
-   npm install
-   ```
+## 📄 User Instructions
 
-2. Start the app
+- Download the user manual here: [Download User Instructions (PDF)](docs/instructions.pdf)
 
-   ```bash
-    npx expo start
-   ```
+## 🛠️ Tech Stack
 
-In the output, you'll find options to open the app in a
+- **Framework**: React Native via [Expo](https://expo.dev/)
+- **Routing**: [expo-router](https://expo.github.io/router/docs)
+- **State Management**: React Context API
+- **HTTP Requests**: Axios
+- **Styling**: Tailwind CSS with NativeWind
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## 🧭 Features
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+- Scan and decode fiscal receipts from Serbian tax devices
+- Send data directly to your Calculus ERP database
+- Local offline storage with optional sync
+- User authentication and session handling
+- Settings for server configuration and preferences
 
-## Get a fresh project
+## 📥 Installation (Development)
 
-When you're ready, run:
+To run the project locally:
 
 ```bash
-npm run reset-project
+git clone https://github.com/yourusername/calculus-qr-scanner.git
+cd calculus-qr-scanner
+git checkout development
+npm install
+npx expo start
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+## 📬 Contact
 
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- Nikola Raičević 📧 nikola.raicevic@calculus.rs 📧 2nikolar1@gmail.com
+- Calculus customer support 📧 podrska@calculus.rs
