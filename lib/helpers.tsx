@@ -1,6 +1,8 @@
 import { Alert, Platform, ToastAndroid } from 'react-native';
 import { ReceiptDataFromTC } from './types/Receipt';
+import { User } from './types/User';
 
+// Poseban Alert koji se menja za iPhone i Android uređaje
 export const customAlert = (title: string, message: string) => {
   if (Platform.OS === 'android') {
     ToastAndroid.show(message, ToastAndroid.BOTTOM);
@@ -9,6 +11,7 @@ export const customAlert = (title: string, message: string) => {
   }
 };
 
+// Provera malicious karaktera na inputima
 export const hasMaliciousInput = (text: string) => {
   const regex = /['";<>(){}]/g;
   if (regex.test(text)) {
@@ -19,6 +22,7 @@ export const hasMaliciousInput = (text: string) => {
   return false;
 };
 
+// Parsiranje podataka iz TaxCore
 export const getReceiptDataFromTC = (
   htmlText: string
 ): ReceiptDataFromTC | null => {
@@ -68,3 +72,14 @@ export const getReceiptDataFromTC = (
 
   return receiptDataFromTC;
 };
+
+// Izvlačenje naziva baze na osnovu selektovane baze
+export function getSelectedDBName(user: User): string | null {
+  if (!user?.selectedDB) return null;
+
+  const db = user.databases.find(
+    (database) => database.serialNum === user.selectedDB
+  );
+
+  return db ? db.name : null;
+}

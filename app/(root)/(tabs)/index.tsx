@@ -19,7 +19,11 @@ import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import Ionicons from '@expo/vector-icons/Ionicons';
 
 import images from '@/assets/constants/images';
-import { customAlert, getReceiptDataFromTC } from '@/lib/helpers';
+import {
+  customAlert,
+  getReceiptDataFromTC,
+  getSelectedDBName,
+} from '@/lib/helpers';
 import { useGlobalContext } from '@/lib/global-provider';
 import { ReceiptDataFromTC } from '@/lib/types/Receipt';
 import ReceiptModal from '@/components/modals/ReceiptModal';
@@ -28,8 +32,10 @@ import ReceiptsListModal from '@/components/modals/ReceiptsListModal';
 export default function Index() {
   const [facing, setFacing] = useState<CameraType>('back');
   const [receiptsVisible, setReceiptsVisible] = useState<boolean>(false);
+
   const [scanned, setScanned] = useState<boolean>(false);
-  const [properScanned, setProperScanned] = useState<boolean>(false);
+  const [isProcessing, setIsProcessing] = useState<boolean>(false);
+
   const [scannedData, setScannedData] = useState<string>('');
   const [showModal, setShowModal] = useState<boolean>(false);
   const [scannedInvoiceNumber, setScannedInvoiceNumber] = useState<string>('');
@@ -41,11 +47,24 @@ export default function Index() {
       sdcDateTime: '',
       monospaceContent: '',
     });
-  const [cameraPermission, requestPermission] = useCameraPermissions();
 
-  const { scannedReceipts, cameraOpen, setCameraOpen } = useGlobalContext();
+  const [cameraPermission, requestPermission] = useCameraPermissions();
+  const { user, scannedReceipts, cameraOpen, setCameraOpen } =
+    useGlobalContext();
 
   async function openCamera() {
+    const hasSelectedDB =
+      !!user?.selectedDB &&
+      Array.isArray(user?.databases) &&
+      user.databases.some((d) => d.serialNum === user.selectedDB);
+
+    if (!hasSelectedDB) {
+      return customAlert(
+        'Upozorenje!',
+        'Molimo izaberite bazu za skeniranje pre otvaranja kamere. Odabir baze vrši se u drugom tabu sa ikonicom zupčanika.'
+      );
+    }
+
     if (!cameraPermission || cameraPermission.status !== 'granted') {
       const { status } = await requestPermission();
       if (status !== 'granted') {
@@ -62,30 +81,13 @@ export default function Index() {
     setFacing((current) => (current === 'back' ? 'front' : 'back'));
   }
 
-  const handleBarcodeScanned = (qrCodeResults: BarcodeScanningResult) => {
-    const url = qrCodeResults.data;
-    if (url && !url.startsWith('https://suf.purs.gov.rs')) {
-      setScanned(true); // Temporarily disable scanning
-      customAlert(
-        'Upozorenje!',
-        'Molimo Vas skenirajte QR kod sa fiskalnog računa.'
-      );
-      setTimeout(() => setScanned(false), 2000); // Re-enable after 2 seconds
-      return;
-    }
-    setProperScanned(true);
-    setScannedData(url);
-  };
-
-  const dismiss = () => {
+  const resetScanFlags = () => {
     setScanned(false);
-    setProperScanned(false);
-    setScannedData('');
+    setIsProcessing(false);
   };
 
-  const handleReadBarcode = async () => {
+  const handleReadBarcode = async (url: string) => {
     try {
-      const url = scannedData;
       const response = await fetch(url);
       const htmlText = await response.text();
 
@@ -101,6 +103,7 @@ export default function Index() {
       setScannedInvoiceNumber(receiptData.invoiceNumber);
       setShowModal(true);
     } catch (error) {
+      resetScanFlags();
       customAlert(
         'Greška!',
         'Greška prilikom parsiranja URL adrese poreske uprave!'
@@ -108,10 +111,34 @@ export default function Index() {
     }
   };
 
+  const handleBarcodeScanned = async (qrCodeResults: BarcodeScanningResult) => {
+    if (scanned || isProcessing) return;
+
+    const url = qrCodeResults.data;
+    if (url && !url.startsWith('https://suf.purs.gov.rs')) {
+      setScanned(true);
+      customAlert(
+        'Upozorenje!',
+        'Molimo Vas skenirajte QR kod sa fiskalnog računa.'
+      );
+      setTimeout(() => setScanned(false), 1500);
+      return;
+    }
+
+    if (!url) return;
+
+    setScanned(true);
+    setIsProcessing(true);
+    setScannedData(url);
+    await handleReadBarcode(url);
+  };
+
   useFocusEffect(
     useCallback(() => {
       return () => {
         setCameraOpen(false);
+        resetScanFlags();
+        setShowModal(false);
       };
     }, [setCameraOpen])
   );
@@ -165,25 +192,21 @@ export default function Index() {
           <Text style={styles.scanText}>Skenirajte QR kod</Text>
         </View>
 
-        {properScanned && (
-          <View style={styles.scannedResult}>
-            <TouchableOpacity onPress={handleReadBarcode}>
-              <Text style={styles.scannedResultText}>
-                Prikaži skenirani račun
-              </Text>
-            </TouchableOpacity>
-            <AntDesign name='close' size={18} color='white' onPress={dismiss} />
-          </View>
-        )}
-
         {showModal && (
           <ReceiptModal
             showModal={showModal}
-            setShowModal={setShowModal}
+            setShowModal={(val) => {
+              setShowModal(val);
+              if (!val) {
+                resetScanFlags();
+                setScannedData('');
+                setScannedInvoiceNumber('');
+              }
+            }}
             scannedData={scannedData}
             setScannedData={setScannedData}
             setScanned={setScanned}
-            setProperScanned={setProperScanned}
+            setProperScanned={() => {}}
             scannedInvoiceNumber={scannedInvoiceNumber}
             setScannedInvoiceNumber={setScannedInvoiceNumber}
             scannedReceiptDataFromTC={scannedReceiptDataFromTC}
@@ -201,9 +224,34 @@ export default function Index() {
         justifyContent: 'center',
         alignItems: 'center',
         backgroundColor: '#2368fd',
+        paddingHorizontal: 20,
       }}
     >
-      <TouchableOpacity onPress={openCamera}>
+      <Image
+        source={images.logo}
+        style={{
+          width: '100%',
+        }}
+        resizeMode='contain'
+      />
+
+      {/* Database info */}
+      <Text
+        className='font-rubik'
+        style={{
+          fontSize: 18,
+          color: 'white',
+          marginBottom: 40,
+          textAlign: 'center',
+        }}
+      >
+        Baza za skeniranje:{' '}
+        <Text className='font-rubik-medium'>
+          {getSelectedDBName(user) || 'Nije izabrana'}
+        </Text>
+      </Text>
+
+      <TouchableOpacity onPress={openCamera} style={{ alignItems: 'center' }}>
         <Image
           source={images.scan}
           className='rounded-full'
@@ -214,6 +262,19 @@ export default function Index() {
           resizeMode='contain'
         />
       </TouchableOpacity>
+      <Text
+        className='font-rubik'
+        style={{
+          marginTop: 20,
+          fontSize: 18,
+          fontWeight: '600',
+          color: 'white',
+          textAlign: 'center',
+        }}
+      >
+        Kliknite ikonicu iznad kako biste otvorili kameru i započeli skeniranje
+        računa
+      </Text>
     </View>
   );
 }
@@ -266,20 +327,5 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     position: 'absolute',
-  },
-  scannedResult: {
-    position: 'absolute',
-    bottom: 150,
-    alignSelf: 'center',
-    backgroundColor: '#2368fd',
-    borderRadius: 8,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  scannedResultText: {
-    color: 'white',
   },
 });
