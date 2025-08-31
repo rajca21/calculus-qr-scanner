@@ -1,29 +1,39 @@
 {
   "expo": {
-    "name": "calculus-qr-scanner",
-    "slug": "calculus-qr-scanner",
+    "name": "Calculus Čitač Fiskala",
+    "slug": "calculus-citac-fiskala",
+    "owner": "nikolacalculusmd",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "calculusqr",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
+    "description": "Aplikacija za očitanje fiskalnih računa povezana sa Calculus bazom podataka.",
+    "keywords": ["fiskalni", "račun", "qr", "scanner", "calculus"],
+    "primaryColor": "#699cf5",
+    "privacy": "public",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": false,
+      "bundleIdentifier": "com.calculus.calculuscitacfiskala",
+      "buildNumber": "1"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/icon.png",
         "backgroundColor": "#ffffff"
       },
+      "versionCode": 1,
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO"
       ],
-      "package": "com.rajca21.calculusqrscanner"
+      "package": "com.calculus.calculuscitacfiskala",
+      "compileSdkVersion": 34,
+      "targetSdkVersion": 34,
+      "minSdkVersion": 23,
+      "allowBackup": false
     },
     "web": {
       "bundler": "metro",
@@ -44,9 +54,10 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Dozvolite Calculus QR kod skeneru da pristupi Vašoj kameri"
+          "cameraPermission": "Dozvolite Calculus aplikaciji da pristupi Vašoj kameri"
         }
-      ]
+      ],
+      "expo-font"
     ],
     "experiments": {
       "typedRoutes": true
@@ -56,7 +67,7 @@
         "origin": false
       },
       "eas": {
-        "projectId": "2ce96ebf-2d25-4113-a813-2724b9390ef9"
+        "projectId": "0caab71a-4d64-41b0-bef0-4f13c675c7c4"
       }
     }
   }
