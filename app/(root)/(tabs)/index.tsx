@@ -14,9 +14,7 @@ import {
   useCameraPermissions,
 } from 'expo-camera';
 import { useFocusEffect } from 'expo-router';
-import AntDesign from '@expo/vector-icons/AntDesign';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import Ionicons from '@expo/vector-icons/Ionicons';
+import { AntDesign, MaterialIcons, Ionicons } from '@expo/vector-icons';
 
 import images from '@/assets/constants/images';
 import {
@@ -27,7 +25,7 @@ import {
 import { useGlobalContext } from '@/lib/global-provider';
 import { ReceiptDataFromTC } from '@/lib/types/Receipt';
 import ReceiptModal from '@/components/modals/ReceiptModal';
-import ReceiptsListModal from '@/components/modals/ReceiptsListModal';
+import ReceiptsListDrawer from '@/components/modals/ReceiptsListDrawer';
 
 export default function Index() {
   const [facing, setFacing] = useState<CameraType>('back');
@@ -155,10 +153,9 @@ export default function Index() {
           onBarcodeScanned={scanned ? undefined : handleBarcodeScanned}
         />
 
-        {/* Overlay elements */}
         <AntDesign
           style={styles.closeButton}
-          name='closecircleo'
+          name='close-circle'
           size={28}
           color='white'
           onPress={() => setCameraOpen(false)}
@@ -180,9 +177,9 @@ export default function Index() {
               color='black'
               onPress={() => setReceiptsVisible(true)}
             />
-            <ReceiptsListModal
-              receiptsVisible={receiptsVisible}
-              setReceiptsVisible={setReceiptsVisible}
+            <ReceiptsListDrawer
+              visible={receiptsVisible}
+              onClose={() => setReceiptsVisible(false)}
             />
           </>
         )}
@@ -235,7 +232,6 @@ export default function Index() {
         resizeMode='contain'
       />
 
-      {/* Database info */}
       <Text
         className='font-rubik'
         style={{

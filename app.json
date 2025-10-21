@@ -9,11 +9,11 @@
     "scheme": "calculusqr",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
-    "assetBundlePatterns": ["**/*"],
+    "assetBundlePatterns": [
+      "**/*"
+    ],
     "description": "Aplikacija za očitanje fiskalnih računa povezana sa Calculus bazom podataka.",
-    "keywords": ["fiskalni", "račun", "qr", "scanner", "calculus"],
     "primaryColor": "#699cf5",
-    "privacy": "public",
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.calculus.calculuscitacfiskala",
@@ -30,10 +30,10 @@
         "android.permission.RECORD_AUDIO"
       ],
       "package": "com.calculus.calculuscitacfiskala",
-      "compileSdkVersion": 34,
-      "targetSdkVersion": 34,
-      "minSdkVersion": 23,
-      "allowBackup": false
+      "allowBackup": false,
+      "android": {
+        "softwareKeyboardLayoutMode": "resize"
+      }
     },
     "web": {
       "bundler": "metro",
@@ -57,7 +57,8 @@
           "cameraPermission": "Dozvolite Calculus aplikaciji da pristupi Vašoj kameri"
         }
       ],
-      "expo-font"
+      "expo-font",
+      "expo-web-browser"
     ],
     "experiments": {
       "typedRoutes": true
