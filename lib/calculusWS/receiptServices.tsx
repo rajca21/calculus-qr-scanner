@@ -24,8 +24,6 @@ export const exportReceipts = async (
       }
     );
 
-    console.log(res.data);
-
     if (res.status === 201) {
       return 'success';
     } else if (res.status === 400 || res.status === 403) {

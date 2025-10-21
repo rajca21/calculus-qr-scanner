@@ -1,9 +1,11 @@
 import { useEffect } from 'react';
 import { SplashScreen, Stack } from 'expo-router';
 import { useFonts } from 'expo-font';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import './globals.css';
 import GlobalProvider from '@/lib/global-provider';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 // import { removeLocalStorage } from '@/lib/localAsyncStorage';
 
 export default function RootLayout() {
@@ -26,12 +28,16 @@ export default function RootLayout() {
   if (!fontsLoaded) return null;
 
   return (
-    <GlobalProvider>
-      <Stack
-        screenOptions={{
-          headerShown: false,
-        }}
-      />
-    </GlobalProvider>
+    <SafeAreaProvider>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <GlobalProvider>
+          <Stack
+            screenOptions={{
+              headerShown: false,
+            }}
+          />
+        </GlobalProvider>
+      </GestureHandlerRootView>
+    </SafeAreaProvider>
   );
 }

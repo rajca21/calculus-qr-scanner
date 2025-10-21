@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, SafeAreaView, Text } from 'react-native';
+import { ActivityIndicator, Text } from 'react-native';
 import { Redirect, Slot } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useGlobalContext } from '@/lib/global-provider';
 import { getLocalStorage } from '@/lib/localAsyncStorage';

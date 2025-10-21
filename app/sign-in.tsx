@@ -2,18 +2,19 @@ import { useRef, useState } from 'react';
 import {
   Animated,
   Image,
-  SafeAreaView,
   ScrollView,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
 import { Redirect } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import images from '@/assets/constants/images';
 import { useGlobalContext } from '@/lib/global-provider';
 import LoginForm from '@/components/LoginForm';
 import RegisterForm from '@/components/RegisterForm';
+import BottomDrawer from '@/components/ui/BottomDrawer';
 
 const SignIn = () => {
   const [showLoginForm, setShowLoginForm] = useState(false);
@@ -85,19 +86,21 @@ const SignIn = () => {
         </View>
       </ScrollView>
 
-      {showLoginForm && (
-        <LoginForm
-          formTranslateY={formTranslateY}
-          setShowLoginForm={setShowLoginForm}
-        />
-      )}
+      <BottomDrawer
+        visible={showLoginForm}
+        onClose={() => setShowLoginForm(false)}
+        heightRatio={0.55}
+      >
+        <LoginForm setShowLoginForm={setShowLoginForm} />
+      </BottomDrawer>
 
-      {showRegisterForm && (
-        <RegisterForm
-          formRegTranslateY={formRegTranslateY}
-          setShowRegisterForm={setShowRegisterForm}
-        />
-      )}
+      <BottomDrawer
+        visible={showRegisterForm}
+        onClose={() => setShowRegisterForm(false)}
+        heightRatio={0.8}
+      >
+        <RegisterForm setShowRegisterForm={setShowRegisterForm} />
+      </BottomDrawer>
     </SafeAreaView>
   );
 };
