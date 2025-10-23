@@ -96,7 +96,6 @@ export const logout = async (
       throw new Error('Greška prilikom odjavljivanja korisnika');
     }
   } catch (error) {
-    customAlert('Greška', 'Greška prilikom odjavljivanja korisnika!');
     await removeLocalStorage();
     return null;
   }
