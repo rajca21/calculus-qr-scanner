@@ -3,7 +3,7 @@
     "name": "Calculus Čitač Fiskala",
     "slug": "calculus-citac-fiskala",
     "owner": "nikolacalculusmd",
-    "version": "1.0.2",
+    "version": "1.0.3",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "calculusqr",
@@ -17,23 +17,21 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.calculus.calculuscitacfiskala",
-      "buildNumber": "1"
+      "buildNumber": "2"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/icon.png",
         "backgroundColor": "#ffffff"
       },
-      "versionCode": 3,
+      "versionCode": 4,
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO"
       ],
       "package": "com.calculus.calculuscitacfiskala",
       "allowBackup": false,
-      "android": {
-        "softwareKeyboardLayoutMode": "resize"
-      }
+      "softwareKeyboardLayoutMode": "resize"
     },
     "web": {
       "bundler": "metro",
