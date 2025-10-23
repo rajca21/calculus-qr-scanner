@@ -17,7 +17,10 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.calculus.calculuscitacfiskala",
-      "buildNumber": "2"
+      "buildNumber": "2",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
