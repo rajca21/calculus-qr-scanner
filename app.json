@@ -19,7 +19,8 @@
       "bundleIdentifier": "com.calculus.calculuscitacfiskala",
       "buildNumber": "2",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "CFBundleDevelopmentRegion": "en"
       }
     },
     "android": {
@@ -55,12 +56,20 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Dozvolite Calculus aplikaciji da pristupi Vašoj kameri"
+          "cameraPermission": "Allow camera access to scan fiscal receipts."
         }
       ],
       "expo-font",
       "expo-web-browser"
     ],
+    "locales": {
+      "en": "./locales/en.json",
+      "sr": "./locales/sr.json",
+      "hr": "./locales/hr.json",
+      "bs": "./locales/bs.json",
+      "sl": "./locales/sl.json",
+      "mk": "./locales/mk.json"
+    },
     "experiments": {
       "typedRoutes": true
     },
