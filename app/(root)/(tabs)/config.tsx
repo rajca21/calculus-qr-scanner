@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import {
   ActivityIndicator,
+  Alert,
   Platform,
   ScrollView,
   Text,
@@ -24,8 +25,10 @@ import {
   logout,
   resetPassword,
   updateProfileInfo,
+  deleteUser,
 } from '@/lib/calculusWS/auhtenticationServices';
 import DatabaseSelector from '@/components/DatabaseSelector';
+import ConfigHeaderMenu from '@/components/config/ConfigHeaderMenu';
 
 const Config = () => {
   const { user, setUser, setIsLoggedIn } = useGlobalContext();
@@ -132,12 +135,48 @@ const Config = () => {
     }
   };
 
+  const handleDeleteAccount = () => {
+    Alert.alert(
+      'Brisanje naloga',
+      'Da li ste sigurni da želite da obrišete svoj nalog? Ova akcija je nepovratna.',
+      [
+        { text: 'Odustani', style: 'cancel' },
+        {
+          text: 'Obriši',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setLoading(true);
+              const res = await deleteUser(user.uid);
+
+              if (res === 'success') {
+                await removeLocalStorage();
+                customAlert('Obaveštenje', 'Nalog je uspešno obrisan.');
+                setUser(null);
+                setIsLoggedIn(false);
+                router.replace('/sign-in');
+              }
+            } catch (error) {
+              customAlert(
+                'Greška',
+                'Došlo je do greške prilikom brisanja naloga. Pokušajte ponovo.'
+              );
+            } finally {
+              setLoading(false);
+            }
+          },
+        },
+      ]
+    );
+  };
+
   return (
     <SafeAreaView className='bg-white flex-1'>
       <View className='relative flex-1'>
         <View className='pb-32 px-7 h-screen bg-white'>
-          <View className='mt-5'>
+          <View className='mt-5 flex-row items-center justify-between'>
             <Text className='text-xl font-rubik-bold'>Postavke profila</Text>
+            <ConfigHeaderMenu onDeletePress={handleDeleteAccount} />
           </View>
 
           <View className='flex flex-col justify-between h-full w-full'>
