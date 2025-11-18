@@ -203,3 +203,28 @@ export const updateProfileInfo = async (
     return null;
   }
 };
+
+export const deleteUser = async (
+  korisniksk: string,
+): Promise<string | null> => {
+  try {
+    const res = await axios.delete(
+      `${API_USERS_URL}/${korisniksk}`,
+      {
+        validateStatus: () => true,
+      }
+    );
+
+    if (res.status === 204) {
+      return 'success';
+    } else if (res.status === 400 || res.status === 403) {
+      customAlert('Upozorenje', res.data);
+      return null;
+    } else {
+      throw new Error('Greška prilikom brisanja korisnika!');
+    }
+  } catch (error) {
+    customAlert('Greška', 'Greška prilikom brisanja korisnika!');
+    return null;
+  }
+};
