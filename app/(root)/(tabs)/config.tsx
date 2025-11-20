@@ -43,6 +43,8 @@ const Config = () => {
 
   const [loading, setLoading] = useState(false);
 
+  const isIOS = Platform.OS === 'ios';
+
   const handleLogout = async () => {
     try {
       setLoading(true);
@@ -205,23 +207,25 @@ const Config = () => {
               <View className='border-b-gray-300 border-b'></View>
 
               {/* Naziv firme - zabranjena promena */}
-              <View
-                className={`flex flex-row items-center border bg-gray-100 border-gray-300 rounded-lg px-4 w-full ${
-                  Platform.OS === 'ios' ? 'py-4' : 'py-1'
-                }`}
-              >
-                <MaterialCommunityIcons
-                  name='office-building-outline'
-                  size={24}
-                  color='black'
-                />
-                <TextInput
-                  placeholder='Naziv firme'
-                  className='pl-4 font-rubik border-none outline-none w-full'
-                  value={user?.companyName}
-                  editable={false}
-                />
-              </View>
+              {!isIOS && (
+                <View
+                  className={`flex flex-row items-center border bg-gray-100 border-gray-300 rounded-lg px-4 w-full ${
+                    Platform.OS === 'ios' ? 'py-4' : 'py-1'
+                  }`}
+                >
+                  <MaterialCommunityIcons
+                    name='office-building-outline'
+                    size={24}
+                    color='black'
+                  />
+                  <TextInput
+                    placeholder='Naziv firme'
+                    className='pl-4 font-rubik border-none outline-none w-full'
+                    value={user?.companyName}
+                    editable={false}
+                  />
+                </View>
+              )}
 
               {/* Kontakt telefon / mail */}
               <View
