@@ -7,7 +7,6 @@ import {
   ActivityIndicator,
   Platform,
   ScrollView,
-  Animated,
 } from 'react-native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import {
@@ -35,6 +34,8 @@ export default function RegisterForm({
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
+  const isIOS = Platform.OS === 'ios';
+
   const handleRegister = async () => {
     setError('');
 
@@ -42,8 +43,8 @@ export default function RegisterForm({
       hasMaliciousInput(email) ||
       hasMaliciousInput(password) ||
       hasMaliciousInput(confirmPassword) ||
-      hasMaliciousInput(pib) ||
-      hasMaliciousInput(companyName)
+      (!isIOS && (hasMaliciousInput(pib) || hasMaliciousInput(companyName))) ||
+      hasMaliciousInput(contact)
     )
       return;
     if (email.trim() === '' || !email) {
@@ -61,26 +62,27 @@ export default function RegisterForm({
     if (password.trim() !== confirmPassword.trim()) {
       return setError('Lozinke se ne poklapaju!');
     }
-    if (pib.trim() === '' || !pib) {
-      return setError('Unesite PIB firme');
+    if (!isIOS) {
+      if (!pib || pib.trim() === '') {
+        return setError('Unesite PIB firme');
+      }
+      if (!companyName || companyName.trim() === '') {
+        return setError('Unesite naziv firme');
+      }
     }
-    if (companyName.trim() === '' || !companyName) {
-      return setError('Unesite naziv firme');
-    }
-
-    if (
-      hasMaliciousInput(email) ||
-      hasMaliciousInput(password) ||
-      hasMaliciousInput(confirmPassword) ||
-      hasMaliciousInput(pib) ||
-      hasMaliciousInput(companyName) ||
-      hasMaliciousInput(contact)
-    )
-      return;
 
     setLoading(true);
 
-    const res = await register(email, password, pib, companyName, contact);
+    const pibToSend = isIOS ? 'ios-no-pib' : pib.trim();
+    const companyNameToSend = isIOS ? 'ios-no-comp' : companyName.trim();
+
+    const res = await register(
+      email,
+      password,
+      pibToSend,
+      companyNameToSend,
+      contact
+    );
 
     setLoading(false);
     if (res === 'success') {
@@ -194,44 +196,48 @@ export default function RegisterForm({
             </View>
 
             {/* PIB */}
-            <View
-              className={`flex flex-row items-center border border-gray-300 rounded-lg px-4 ${
-                Platform.OS === 'ios' ? 'py-4' : 'py-1'
-              } mb-4`}
-            >
-              <MaterialCommunityIcons
-                name='office-building-outline'
-                size={24}
-                color='black'
-              />
-              <TextInput
-                placeholder='PIB *'
-                textContentType='oneTimeCode'
-                className='pl-4 font-rubik border-none outline-none w-full'
-                value={pib}
-                onChangeText={(text) => setPib(text)}
-              />
-            </View>
+            {!isIOS && (
+              <View
+                className={`flex flex-row items-center border border-gray-300 rounded-lg px-4 ${
+                  isIOS ? 'py-4' : 'py-1'
+                } mb-4`}
+              >
+                <MaterialCommunityIcons
+                  name='office-building-outline'
+                  size={24}
+                  color='black'
+                />
+                <TextInput
+                  placeholder='PIB *'
+                  textContentType='oneTimeCode'
+                  className='pl-4 font-rubik border-none outline-none w-full'
+                  value={pib}
+                  onChangeText={setPib}
+                />
+              </View>
+            )}
 
             {/* Naziv firme */}
-            <View
-              className={`flex flex-row items-center border border-gray-300 rounded-lg px-4 ${
-                Platform.OS === 'ios' ? 'py-4' : 'py-1'
-              } mb-4`}
-            >
-              <MaterialCommunityIcons
-                name='office-building-outline'
-                size={24}
-                color='black'
-              />
-              <TextInput
-                placeholder='Naziv firme *'
-                textContentType='oneTimeCode'
-                className='pl-4 font-rubik border-none outline-none w-full'
-                value={companyName}
-                onChangeText={(text) => setCompanyName(text)}
-              />
-            </View>
+            {!isIOS && (
+              <View
+                className={`flex flex-row items-center border border-gray-300 rounded-lg px-4 ${
+                  isIOS ? 'py-4' : 'py-1'
+                } mb-4`}
+              >
+                <MaterialCommunityIcons
+                  name='office-building-outline'
+                  size={24}
+                  color='black'
+                />
+                <TextInput
+                  placeholder='Naziv firme *'
+                  textContentType='oneTimeCode'
+                  className='pl-4 font-rubik border-none outline-none w-full'
+                  value={companyName}
+                  onChangeText={setCompanyName}
+                />
+              </View>
+            )}
 
             {/* Kontakt */}
             <View
