@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import {
   Image,
   Platform,
+  Pressable,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -9,10 +10,12 @@ import {
 } from 'react-native';
 import {
   BarcodeScanningResult,
+  Camera,
   CameraType,
   CameraView,
   useCameraPermissions,
 } from 'expo-camera';
+import * as ImagePicker from 'expo-image-picker';
 import { useFocusEffect } from 'expo-router';
 import { AntDesign, MaterialIcons, Ionicons } from '@expo/vector-icons';
 
@@ -50,6 +53,27 @@ export default function Index() {
   const { user, scannedReceipts, cameraOpen, setCameraOpen } =
     useGlobalContext();
 
+  const processScannedUrl = async (url: string) => {
+    if (scanned || isProcessing) return;
+
+    if (url && !url.startsWith('https://suf.purs.gov.rs')) {
+      setScanned(true);
+      customAlert(
+        'Upozorenje!',
+        'Molimo Vas skenirajte QR kod sa fiskalnog računa.',
+      );
+      setTimeout(() => setScanned(false), 1500);
+      return;
+    }
+
+    if (!url) return;
+
+    setScanned(true);
+    setIsProcessing(true);
+    setScannedData(url);
+    await handleReadBarcode(url);
+  };
+
   async function openCamera() {
     const hasSelectedDB =
       !!user?.selectedDB &&
@@ -59,7 +83,7 @@ export default function Index() {
     if (!hasSelectedDB) {
       return customAlert(
         'Upozorenje!',
-        'Molimo izaberite bazu za skeniranje pre otvaranja kamere. Odabir baze vrši se u drugom tabu sa ikonicom zupčanika.'
+        'Molimo izaberite bazu za skeniranje pre otvaranja kamere. Odabir baze vrši se u drugom tabu sa ikonicom zupčanika.',
       );
     }
 
@@ -68,7 +92,7 @@ export default function Index() {
       if (status !== 'granted') {
         return customAlert(
           'Upozorenje!',
-          'Aplikacija nema dozvolu za korišćenje kamere. Molimo Vas da omogućite pristup kameri u podešavanjima.'
+          'Aplikacija nema dozvolu za korišćenje kamere. Molimo Vas da omogućite pristup kameri u podešavanjima.',
         );
       }
     }
@@ -78,6 +102,59 @@ export default function Index() {
   function toggleCameraFacing() {
     setFacing((current) => (current === 'back' ? 'front' : 'back'));
   }
+
+  const pickImageAndScan = async () => {
+    try {
+      if (scanned || isProcessing) return;
+
+      const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!perm.granted) {
+        return customAlert(
+          'Upozorenje!',
+          'Aplikacija nema dozvolu za pristup galeriji. Molimo Vas da omogućite pristup u podešavanjima.',
+        );
+      }
+
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsMultipleSelection: false,
+        selectionLimit: 1,
+        quality: 1,
+      });
+
+      if (result.canceled) return;
+
+      const uri = result.assets?.[0]?.uri;
+      if (!uri) {
+        return customAlert('Greška!', 'Nije moguće učitati izabranu sliku.');
+      }
+
+      const scannedCodes = await Camera.scanFromURLAsync(uri, ['qr'] as any); // iOS: samo QR :contentReference[oaicite:2]{index=2}
+
+      if (!scannedCodes || scannedCodes.length === 0) {
+        return customAlert(
+          'Upozorenje!',
+          'Na izabranoj slici nije pronađen QR kod.',
+        );
+      }
+
+      const data = (scannedCodes[0] as any)?.data as string | undefined;
+      if (!data) {
+        return customAlert(
+          'Upozorenje!',
+          'Na izabranoj slici nije pronađen QR kod.',
+        );
+      }
+
+      await processScannedUrl(data);
+    } catch (e) {
+      resetScanFlags();
+      customAlert(
+        'Greška!',
+        'Došlo je do greške prilikom skeniranja QR koda iz slike.',
+      );
+    }
+  };
 
   const resetScanFlags = () => {
     setScanned(false);
@@ -93,7 +170,7 @@ export default function Index() {
       if (!receiptData) {
         return customAlert(
           'Upozorenje!',
-          'Došlo je do promene strukture na sajtu poreske uprave. Obratite se korisničkoj podršci'
+          'Došlo je do promene strukture na sajtu poreske uprave. Obratite se korisničkoj podršci',
         );
       }
 
@@ -104,31 +181,13 @@ export default function Index() {
       resetScanFlags();
       customAlert(
         'Greška!',
-        'Greška prilikom parsiranja URL adrese poreske uprave!'
+        'Greška prilikom parsiranja URL adrese poreske uprave!',
       );
     }
   };
 
   const handleBarcodeScanned = async (qrCodeResults: BarcodeScanningResult) => {
-    if (scanned || isProcessing) return;
-
-    const url = qrCodeResults.data;
-    if (url && !url.startsWith('https://suf.purs.gov.rs')) {
-      setScanned(true);
-      customAlert(
-        'Upozorenje!',
-        'Molimo Vas skenirajte QR kod sa fiskalnog računa.'
-      );
-      setTimeout(() => setScanned(false), 1500);
-      return;
-    }
-
-    if (!url) return;
-
-    setScanned(true);
-    setIsProcessing(true);
-    setScannedData(url);
-    await handleReadBarcode(url);
+    await processScannedUrl(qrCodeResults.data);
   };
 
   useFocusEffect(
@@ -138,7 +197,7 @@ export default function Index() {
         resetScanFlags();
         setShowModal(false);
       };
-    }, [setCameraOpen])
+    }, [setCameraOpen]),
   );
 
   if (cameraOpen) {
@@ -167,16 +226,23 @@ export default function Index() {
           color='white'
           onPress={toggleCameraFacing}
         />
+        <Pressable
+          onPress={pickImageAndScan}
+          android_ripple={{ color: 'transparent' }}
+          style={styles.galleryButton}
+        >
+          <Ionicons name='image-outline' size={24} color='black' />
+        </Pressable>
 
         {scannedReceipts && scannedReceipts.length > 0 && (
           <>
-            <Ionicons
-              style={styles.showReceiptsButton}
-              name='receipt-outline'
-              size={24}
-              color='black'
+            <Pressable
               onPress={() => setReceiptsVisible(true)}
-            />
+              android_ripple={{ color: 'transparent' }}
+              style={styles.showReceiptsButton}
+            >
+              <Ionicons name='receipt-outline' size={24} color='black' />
+            </Pressable>
             <ReceiptsListDrawer
               visible={receiptsVisible}
               onClose={() => setReceiptsVisible(false)}
@@ -301,7 +367,7 @@ const styles = StyleSheet.create({
     color: 'white',
     zIndex: 1,
   },
-  showReceiptsButton: {
+  galleryButton: {
     position: 'absolute',
     bottom: Platform.OS === 'ios' ? 100 : 120,
     left: 20,
@@ -311,6 +377,17 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     zIndex: 1,
   },
+  showReceiptsButton: {
+    position: 'absolute',
+    bottom: Platform.OS === 'ios' ? 160 : 180,
+    left: 20,
+    borderRadius: 20,
+    padding: 10,
+    color: '#2368fd',
+    backgroundColor: 'white',
+    zIndex: 1,
+  },
+
   scanGuide: {
     position: 'absolute',
     width: '100%',
