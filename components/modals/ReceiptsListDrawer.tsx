@@ -23,7 +23,7 @@ type Props = {
 
 export default function ReceiptsListDrawer({ visible, onClose }: Props) {
   const [expandedReceiptId, setExpandedReceiptId] = useState<string | null>(
-    null
+    null,
   );
   const [loading, setLoading] = useState<boolean>(false);
 
@@ -52,7 +52,7 @@ export default function ReceiptsListDrawer({ visible, onClose }: Props) {
         setLoading(false);
         return customAlert(
           'Greška',
-          'Greška autentifikacije. Ulogujte se i pokušajte ponovo.'
+          'Greška autentifikacije. Ulogujte se i pokušajte ponovo.',
         );
       }
 
@@ -60,7 +60,7 @@ export default function ReceiptsListDrawer({ visible, onClose }: Props) {
         user.selectedDB,
         urls,
         user.uid,
-        user.sessionToken
+        user.sessionToken,
       );
 
       if (res === 'success') {
@@ -143,13 +143,15 @@ export default function ReceiptsListDrawer({ visible, onClose }: Props) {
           style={{ marginBottom: Platform.OS === 'ios' ? 8 : 36 }}
           activeOpacity={0.85}
         >
-          <Text className='text-center text-white font-bold text-lg'>
+          <View style={{ alignItems: 'center', justifyContent: 'center' }}>
             {loading ? (
               <ActivityIndicator size='small' color='white' />
             ) : (
-              'Izvezi račune'
+              <Text className='text-center text-white font-bold text-lg'>
+                Izvezi račune
+              </Text>
             )}
-          </Text>
+          </View>
         </TouchableOpacity>
       </View>
     </BottomDrawer>
