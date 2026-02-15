@@ -12,7 +12,7 @@ export const register = async (
   password: string,
   pib: string,
   companyName: string,
-  contact: string
+  contact: string,
 ): Promise<string | null> => {
   try {
     const res = await axios.post(
@@ -26,7 +26,7 @@ export const register = async (
       },
       {
         validateStatus: () => true,
-      }
+      },
     );
 
     if (res.status === 201) {
@@ -45,7 +45,7 @@ export const register = async (
 
 export const login = async (
   email: string,
-  password: string
+  password: string,
 ): Promise<User | null> => {
   try {
     const res = await axios.post(
@@ -53,7 +53,7 @@ export const login = async (
       { email, password },
       {
         validateStatus: () => true,
-      }
+      },
     );
 
     let uid: string = '';
@@ -76,7 +76,7 @@ export const login = async (
 
 export const logout = async (
   korisniksk: string,
-  sessionToken: string
+  sessionToken: string,
 ): Promise<string | null> => {
   try {
     const res = await axios.post(
@@ -87,7 +87,7 @@ export const logout = async (
       },
       {
         validateStatus: () => true,
-      }
+      },
     );
 
     if (res.status === 200) {
@@ -101,9 +101,32 @@ export const logout = async (
   }
 };
 
+export const validateSession = async (
+  korisniksk: string,
+  sessionToken: string,
+): Promise<boolean> => {
+  try {
+    if (!korisniksk || !sessionToken) return false;
+
+    const res = await axios.post(
+      `${API_AUTH_URL}/validate`,
+      { uid: korisniksk, token: sessionToken },
+      { validateStatus: () => true },
+    );
+
+    if (res.status === 200 && res.data?.valid === true) return true;
+
+    if (res.status === 401 || res.status === 400) return false;
+
+    return false;
+  } catch (e) {
+    return false;
+  }
+};
+
 export const getUserById = async (
   id: string,
-  email: string = ''
+  email: string = '',
 ): Promise<User | null> => {
   try {
     const res = await axios.get(`${API_USERS_URL}/${id}`, {
@@ -144,7 +167,7 @@ export const resetPassword = async (
   korisniksk: string,
   sessionToken: string,
   password: string,
-  newPassword: string
+  newPassword: string,
 ): Promise<string | null> => {
   try {
     const res = await axios.put(
@@ -156,7 +179,7 @@ export const resetPassword = async (
       },
       {
         validateStatus: () => true,
-      }
+      },
     );
 
     if (res.status === 202) {
@@ -176,7 +199,7 @@ export const resetPassword = async (
 export const updateProfileInfo = async (
   korisniksk: string,
   sessionToken: string,
-  contact: string
+  contact: string,
 ): Promise<string | null> => {
   try {
     const res = await axios.put(
@@ -187,7 +210,7 @@ export const updateProfileInfo = async (
       },
       {
         validateStatus: () => true,
-      }
+      },
     );
 
     if (res.status === 202) {
@@ -208,12 +231,9 @@ export const deleteUser = async (
   korisniksk: string,
 ): Promise<string | null> => {
   try {
-    const res = await axios.delete(
-      `${API_USERS_URL}/${korisniksk}`,
-      {
-        validateStatus: () => true,
-      }
-    );
+    const res = await axios.delete(`${API_USERS_URL}/${korisniksk}`, {
+      validateStatus: () => true,
+    });
 
     if (res.status === 204) {
       return 'success';

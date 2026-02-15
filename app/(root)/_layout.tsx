@@ -4,12 +4,13 @@ import { Redirect, Slot } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useGlobalContext } from '@/lib/global-provider';
-import { getLocalStorage } from '@/lib/localAsyncStorage';
+import { getLocalStorage, removeLocalStorage } from '@/lib/localAsyncStorage';
 import {
   getDateTimeDBServer,
   getDateTimeWebServer,
 } from '@/lib/calculusWS/serviceInfoRequests';
 import { customAlert } from '@/lib/helpers';
+import { validateSession } from '@/lib/calculusWS/auhtenticationServices';
 
 export default function AppLayout() {
   const [apiReady, setApiReady] = useState<boolean | null>(null);
@@ -17,19 +18,37 @@ export default function AppLayout() {
   const { loading, isLoggedIn, setLoading, setIsLoggedIn, setUser } =
     useGlobalContext();
 
-  const getUserDetails = async () => {
-    setLoading(true);
+  const logoutLocal = async () => {
+    await removeLocalStorage();
+    setUser(null);
+    setIsLoggedIn(false);
+  };
+
+  const bootstrapAuth = async () => {
     const userInfo = await getLocalStorage('userDetails');
+
     if (!userInfo) {
-      setIsLoggedIn(false);
-      setUser(null);
-    } else {
-      setIsLoggedIn(true);
-      setUser({
-        ...userInfo,
-      });
+      await logoutLocal();
+      return;
     }
-    setLoading(false);
+
+    const uid = userInfo?.uid;
+    const token = userInfo?.sessionToken;
+
+    if (!uid || !token) {
+      await logoutLocal();
+      return;
+    }
+
+    const ok = await validateSession(String(uid), String(token));
+
+    if (!ok) {
+      await logoutLocal();
+      return;
+    }
+
+    setUser({ ...userInfo });
+    setIsLoggedIn(true);
   };
 
   useEffect(() => {
@@ -42,12 +61,12 @@ export default function AppLayout() {
       ]);
 
       if (webReady && dbReady) {
-        await getUserDetails();
+        await bootstrapAuth();
         setApiReady(true);
       } else {
         customAlert(
           'Upozorenje',
-          'Neuspešno povezivanje sa Web ili DB serverom. Pokušajte ponovo kasnije ili se obratite korisničkoj podršci.'
+          'Neuspešno povezivanje sa Web ili DB serverom. Pokušajte ponovo kasnije ili se obratite korisničkoj podršci.',
         );
         setApiReady(false);
       }

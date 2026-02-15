@@ -63,6 +63,9 @@ const Config = () => {
   };
 
   const updateUserInfo = async () => {
+    if (!user?.sessionToken)
+      return customAlert('Greška', 'Sesija nije validna, ulogujte se ponovo.');
+
     const res = await updateProfileInfo(user.uid, user.sessionToken, contact);
     if (res === 'success') {
       setUser({
@@ -79,6 +82,9 @@ const Config = () => {
   };
 
   const handleUpdateData = async () => {
+    if (!user?.sessionToken)
+      return customAlert('Greška', 'Sesija nije validna, ulogujte se ponovo.');
+
     setLoading(true);
     let changeArray = [
       contact.trim(),
@@ -106,7 +112,7 @@ const Config = () => {
     if (passwordChangeArray.some((value) => value === '')) {
       customAlert(
         'Greška',
-        'Morate popuniti sva polja za lozinku kako biste je uspešno izmenili!'
+        'Morate popuniti sva polja za lozinku kako biste je uspešno izmenili!',
       );
       return setLoading(false);
     } else {
@@ -119,7 +125,7 @@ const Config = () => {
         user.uid,
         user.sessionToken,
         currentPassword,
-        newPassword
+        newPassword,
       );
 
       if (res === 'success') {
@@ -138,6 +144,9 @@ const Config = () => {
   };
 
   const handleDeleteAccount = () => {
+    if (!user?.sessionToken)
+      return customAlert('Greška', 'Sesija nije validna, ulogujte se ponovo.');
+
     Alert.alert(
       'Brisanje naloga',
       'Da li ste sigurni da želite da obrišete svoj nalog? Ova akcija je nepovratna.',
@@ -161,14 +170,14 @@ const Config = () => {
             } catch (error) {
               customAlert(
                 'Greška',
-                'Došlo je do greške prilikom brisanja naloga. Pokušajte ponovo.'
+                'Došlo je do greške prilikom brisanja naloga. Pokušajte ponovo.',
               );
             } finally {
               setLoading(false);
             }
           },
         },
-      ]
+      ],
     );
   };
 
