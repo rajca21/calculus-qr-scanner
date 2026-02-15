@@ -8,6 +8,6 @@ export interface User {
     name: string;
   }[];
   selectedDB: string | null;
-  sessionToken: string;
+  sessionToken: string | null;
   verified: boolean;
 }
