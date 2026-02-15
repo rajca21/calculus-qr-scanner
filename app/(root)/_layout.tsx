@@ -4,13 +4,20 @@ import { Redirect, Slot } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { useGlobalContext } from '@/lib/global-provider';
-import { getLocalStorage, removeLocalStorage } from '@/lib/localAsyncStorage';
+import {
+  getLocalStorage,
+  removeLocalStorage,
+  setLocalStorage,
+} from '@/lib/localAsyncStorage';
 import {
   getDateTimeDBServer,
   getDateTimeWebServer,
 } from '@/lib/calculusWS/serviceInfoRequests';
 import { customAlert } from '@/lib/helpers';
-import { validateSession } from '@/lib/calculusWS/auhtenticationServices';
+import {
+  validateSession,
+  getUserById,
+} from '@/lib/calculusWS/auhtenticationServices';
 
 export default function AppLayout() {
   const [apiReady, setApiReady] = useState<boolean | null>(null);
@@ -41,7 +48,6 @@ export default function AppLayout() {
     }
 
     const ok = await validateSession(String(uid), String(token));
-
     if (!ok) {
       await logoutLocal();
       return;
@@ -49,6 +55,18 @@ export default function AppLayout() {
 
     setUser({ ...userInfo });
     setIsLoggedIn(true);
+
+    const hydrate = async () => {
+      try {
+        const fresh = await getUserById(String(uid), userInfo?.email || '');
+        if (fresh) {
+          setUser(fresh);
+          await setLocalStorage('userDetails', fresh);
+        }
+      } catch {}
+    };
+
+    void hydrate();
   };
 
   useEffect(() => {
