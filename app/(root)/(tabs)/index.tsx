@@ -29,6 +29,7 @@ import { useGlobalContext } from '@/lib/global-provider';
 import { ReceiptDataFromTC } from '@/lib/types/Receipt';
 import ReceiptModal from '@/components/modals/ReceiptModal';
 import ReceiptsListDrawer from '@/components/modals/ReceiptsListDrawer';
+import DatabaseSelector from '@/components/DatabaseSelector';
 
 export default function Index() {
   const [facing, setFacing] = useState<CameraType>('back');
@@ -298,20 +299,28 @@ export default function Index() {
         resizeMode='contain'
       />
 
-      <Text
-        className='font-rubik'
+      <View
         style={{
-          fontSize: 18,
-          color: 'white',
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexWrap: 'wrap',
           marginBottom: 40,
-          textAlign: 'center',
         }}
       >
-        Baza za skeniranje:{' '}
-        <Text className='font-rubik-medium'>
-          {getSelectedDBName(user) || 'Nije izabrana'}
+        <Text
+          className='font-rubik'
+          style={{
+            fontSize: 18,
+            color: 'white',
+            textAlign: 'center',
+            marginRight: 8,
+          }}
+        >
+          Baza za skeniranje:
         </Text>
-      </Text>
+        <DatabaseSelector variant='compact' />
+      </View>
 
       <TouchableOpacity onPress={openCamera} style={{ alignItems: 'center' }}>
         <Image
