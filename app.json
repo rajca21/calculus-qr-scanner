@@ -15,7 +15,7 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.calculus.calculuscitacfiskala",
-      "buildNumber": "4",
+      "buildNumber": "5",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "CFBundleDevelopmentRegion": "en"
@@ -26,7 +26,7 @@
         "foregroundImage": "./assets/images/icon.png",
         "backgroundColor": "#ffffff"
       },
-      "versionCode": 4,
+      "versionCode": 5,
       "permissions": [
         "android.permission.CAMERA",
         "android.permission.RECORD_AUDIO",
@@ -43,6 +43,7 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
+      "./plugins/disable-android-lint",
       "expo-router",
       [
         "expo-splash-screen",
@@ -71,6 +72,8 @@
       "expo-web-browser"
     ],
     "locales": {
+      "base": "./locales/base.json",
+      "en-US": "./locales/en-US.json",
       "en": "./locales/en.json",
       "sr": "./locales/sr.json",
       "hr": "./locales/hr.json",

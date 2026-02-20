@@ -1,3 +1,5 @@
 {
-  "NSCameraUsageDescription": "Дозволете ја апликацијата Calculus пристап до камерата за скенирање фискални сметки."
+  "NSCameraUsageDescription": "Дозволете апликацијата Calculus да пристапи до камерата за скенирање фискални сметки.",
+  "NSPhotoLibraryUsageDescription": "Дозволете апликацијата Calculus да пристапи до галеријата за скенирање QR код од слика.",
+  "NSMicrophoneUsageDescription": "Апликацијата Calculus не користи микрофон, но дозволата може да биде потребна за системски функции."
 }
