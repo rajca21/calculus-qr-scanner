@@ -108,12 +108,14 @@ export default function Index() {
     try {
       if (scanned || isProcessing) return;
 
-      const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!perm.granted) {
-        return customAlert(
-          'Upozorenje!',
-          'Aplikacija nema dozvolu za pristup galeriji. Molimo Vas da omogućite pristup u podešavanjima.',
-        );
+      if (Platform.OS === 'ios') {
+        const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (!perm.granted) {
+          return customAlert(
+            'Upozorenje!',
+            'Aplikacija nema dozvolu za pristup galeriji. Molimo Vas da omogućite pristup u podešavanjima.',
+          );
+        }
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
@@ -126,13 +128,11 @@ export default function Index() {
       if (result.canceled) return;
 
       const uri = result.assets?.[0]?.uri;
-      if (!uri) {
+      if (!uri)
         return customAlert('Greška!', 'Nije moguće učitati izabranu sliku.');
-      }
 
-      const scannedCodes = await Camera.scanFromURLAsync(uri, ['qr'] as any); // iOS: samo QR :contentReference[oaicite:2]{index=2}
-
-      if (!scannedCodes || scannedCodes.length === 0) {
+      const scannedCodes = await Camera.scanFromURLAsync(uri, ['qr'] as any);
+      if (!scannedCodes?.length) {
         return customAlert(
           'Upozorenje!',
           'Na izabranoj slici nije pronađen QR kod.',
@@ -156,7 +156,6 @@ export default function Index() {
       );
     }
   };
-
   const resetScanFlags = () => {
     setScanned(false);
     setIsProcessing(false);
