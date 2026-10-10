@@ -7,9 +7,8 @@ import {
   ActivityIndicator,
   Platform,
   ScrollView,
-  Animated,
 } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
+import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 
@@ -78,10 +77,7 @@ export default function LoginForm({
       style={{ flex: 1 }}
       contentContainerStyle={{ flexGrow: 1 }}
       keyboardShouldPersistTaps='handled'
-      enableOnAndroid={true}
-      enableAutomaticScroll={true}
-      extraScrollHeight={84}
-      keyboardOpeningTime={0}
+      bottomOffset={84}
     >
       <View className='flex-1 bg-white'>
         <Text className='text-2xl font-rubik-medium text-center mb-12'>

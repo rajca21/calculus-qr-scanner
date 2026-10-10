@@ -68,7 +68,7 @@ export default function ReceiptsListDrawer({ visible, onClose }: Props) {
         setScannedReceipts([]);
         onClose();
       }
-    } catch (e) {
+    } catch {
     } finally {
       setLoading(false);
     }

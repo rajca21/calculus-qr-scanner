@@ -118,7 +118,7 @@ export default function ReceiptModal({
       setLoading(false);
       resetState();
       setShowModal(false);
-    } catch (error) {
+    } catch {
       setLoading(false);
       customAlert('Greška!', 'Greška prilikom učitavanja računa.');
     }

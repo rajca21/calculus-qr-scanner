@@ -23,7 +23,6 @@ import images from '@/assets/constants/images';
 import {
   customAlert,
   getReceiptDataFromTC,
-  getSelectedDBName,
 } from '@/lib/helpers';
 import { useGlobalContext } from '@/lib/global-provider';
 import { ReceiptDataFromTC } from '@/lib/types/Receipt';
@@ -119,7 +118,7 @@ export default function Index() {
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ['images'],
         allowsMultipleSelection: false,
         selectionLimit: 1,
         quality: 1,
@@ -131,7 +130,7 @@ export default function Index() {
       if (!uri)
         return customAlert('Greška!', 'Nije moguće učitati izabranu sliku.');
 
-      const scannedCodes = await Camera.scanFromURLAsync(uri, ['qr'] as any);
+      const scannedCodes = await Camera.scanFromURLAsync(uri, ['qr']);
       if (!scannedCodes?.length) {
         return customAlert(
           'Upozorenje!',
@@ -139,7 +138,7 @@ export default function Index() {
         );
       }
 
-      const data = (scannedCodes[0] as any)?.data as string | undefined;
+      const data = scannedCodes[0]?.data;
       if (!data) {
         return customAlert(
           'Upozorenje!',
@@ -148,7 +147,7 @@ export default function Index() {
       }
 
       await processScannedUrl(data);
-    } catch (e) {
+    } catch {
       resetScanFlags();
       customAlert(
         'Greška!',
@@ -177,7 +176,7 @@ export default function Index() {
       setScannedReceiptDataFromTC(receiptData);
       setScannedInvoiceNumber(receiptData.invoiceNumber);
       setShowModal(true);
-    } catch (error) {
+    } catch {
       resetScanFlags();
       customAlert(
         'Greška!',

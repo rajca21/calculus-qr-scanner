@@ -52,7 +52,7 @@ const Config = () => {
       if (res === 'success') {
         await removeLocalStorage();
       }
-    } catch (error) {
+    } catch {
       //
     } finally {
       setUser(null);
@@ -167,7 +167,7 @@ const Config = () => {
                 setIsLoggedIn(false);
                 router.replace('/sign-in');
               }
-            } catch (error) {
+            } catch {
               customAlert(
                 'Greška',
                 'Došlo je do greške prilikom brisanja naloga. Pokušajte ponovo.',

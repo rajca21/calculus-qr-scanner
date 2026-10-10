@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Modal, FlatList } from 'react-native';
 import { MaterialCommunityIcons, AntDesign } from '@expo/vector-icons';
 
@@ -18,11 +18,9 @@ const DatabaseSelector = ({ variant = 'default' }: Props) => {
   const databases = user.databases ?? [];
   const selectedDB = user.selectedDB ?? null;
 
-  const selectedName = useMemo(() => {
-    if (!selectedDB) return null;
-    const found = databases.find((db) => db.serialNum === selectedDB);
-    return found?.name ?? null;
-  }, [databases, selectedDB]);
+  const selectedName = selectedDB
+    ? databases.find((db) => db.serialNum === selectedDB)?.name ?? null
+    : null;
 
   const handleSelectDatabase = async (database: string) => {
     const nextUser = { ...user, selectedDB: database };

@@ -4,8 +4,9 @@ import { useFonts } from 'expo-font';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import './globals.css';
-import GlobalProvider from '@/lib/global-provider';
+import { GlobalProvider } from '@/lib/global-provider';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { KeyboardProvider } from 'react-native-keyboard-controller';
 // import { removeLocalStorage } from '@/lib/localAsyncStorage';
 
 export default function RootLayout() {
@@ -30,13 +31,15 @@ export default function RootLayout() {
   return (
     <SafeAreaProvider>
       <GestureHandlerRootView style={{ flex: 1 }}>
-        <GlobalProvider>
-          <Stack
-            screenOptions={{
-              headerShown: false,
-            }}
-          />
-        </GlobalProvider>
+        <KeyboardProvider>
+          <GlobalProvider>
+            <Stack
+              screenOptions={{
+                headerShown: false,
+              }}
+            />
+          </GlobalProvider>
+        </KeyboardProvider>
       </GestureHandlerRootView>
     </SafeAreaProvider>
   );

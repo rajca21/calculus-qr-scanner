@@ -38,6 +38,11 @@ npm install
 npx expo start
 ```
 
+## SDK upgrades and validation
+
+See [the SDK 57 upgrade notes](docs/sdk-57-upgrade.md) for prerequisites, validation
+commands, remaining dependency advisories, and the device release checklist.
+
 ## 📬 Contact
 
 - Nikola Raičević 📧 nikola.raicevic@calculus.rs 📧 2nikolar1@gmail.com

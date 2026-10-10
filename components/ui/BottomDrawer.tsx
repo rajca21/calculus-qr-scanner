@@ -35,53 +35,57 @@ export default function BottomDrawer({
 
   useEffect(() => {
     if (visible) {
-      ty.value = SHEET_H;
-      backdrop.value = 0;
-      ty.value = withTiming(0, { duration: 280 });
-      backdrop.value = withTiming(1, { duration: 180 });
+      ty.set(SHEET_H);
+      backdrop.set(0);
+      ty.set(withTiming(0, { duration: 280 }));
+      backdrop.set(withTiming(1, { duration: 180 }));
     } else {
-      ty.value = withTiming(SHEET_H, { duration: 220 });
-      backdrop.value = withTiming(0, { duration: 180 });
+      ty.set(withTiming(SHEET_H, { duration: 220 }));
+      backdrop.set(withTiming(0, { duration: 180 }));
     }
   }, [visible, SHEET_H, ty, backdrop]);
 
   const closeDrawer = () => {
-    ty.value = withTiming(SHEET_H, { duration: 220 }, (finished) => {
-      if (finished) runOnJS(onClose)();
-    });
-    backdrop.value = withTiming(0, { duration: 180 });
+    ty.set(
+      withTiming(SHEET_H, { duration: 220 }, (finished) => {
+        if (finished) runOnJS(onClose)();
+      }),
+    );
+    backdrop.set(withTiming(0, { duration: 180 }));
   };
 
   const startY = useSharedValue(0);
   const pan = Gesture.Pan()
     .onStart(() => {
-      startY.value = ty.value;
+      startY.set(ty.get());
     })
     .onUpdate((e) => {
-      const next = Math.max(0, startY.value + e.translationY);
-      ty.value = next;
-      backdrop.value = 1 - Math.min(1, next / SHEET_H);
+      const next = Math.max(0, startY.get() + e.translationY);
+      ty.set(next);
+      backdrop.set(1 - Math.min(1, next / SHEET_H));
     })
     .onEnd((e) => {
-      const shouldClose = e.velocityY > 800 || ty.value > SHEET_H * 0.35;
+      const shouldClose = e.velocityY > 800 || ty.get() > SHEET_H * 0.35;
 
       if (shouldClose) {
-        ty.value = withTiming(SHEET_H, { duration: 200 }, (f) => {
-          if (f) runOnJS(onClose)();
-        });
-        backdrop.value = withTiming(0, { duration: 160 });
+        ty.set(
+          withTiming(SHEET_H, { duration: 200 }, (finished) => {
+            if (finished) runOnJS(onClose)();
+          }),
+        );
+        backdrop.set(withTiming(0, { duration: 160 }));
       } else {
-        ty.value = withSpring(0, { damping: 18, stiffness: 160 });
-        backdrop.value = withTiming(1, { duration: 120 });
+        ty.set(withSpring(0, { damping: 18, stiffness: 160 }));
+        backdrop.set(withTiming(1, { duration: 120 }));
       }
     });
 
   const sheetStyle = useAnimatedStyle(() => ({
-    transform: [{ translateY: ty.value }],
+    transform: [{ translateY: ty.get() }],
   }));
 
   const backdropStyle = useAnimatedStyle(() => ({
-    opacity: backdrop.value,
+    opacity: backdrop.get(),
   }));
 
   if (!visible) return null;
@@ -123,11 +127,11 @@ export default function BottomDrawer({
 
 const styles = StyleSheet.create({
   backdrop: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: 'rgba(0,0,0,0.5)',
   },
   wrap: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     justifyContent: 'flex-end',
   },
   sheet: {

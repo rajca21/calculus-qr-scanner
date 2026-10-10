@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Text } from 'react-native';
 import { Redirect, Slot } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -25,13 +25,13 @@ export default function AppLayout() {
   const { loading, isLoggedIn, setLoading, setIsLoggedIn, setUser } =
     useGlobalContext();
 
-  const logoutLocal = async () => {
+  const logoutLocal = useCallback(async () => {
     await removeLocalStorage();
     setUser(null);
     setIsLoggedIn(false);
-  };
+  }, [setUser, setIsLoggedIn]);
 
-  const bootstrapAuth = async () => {
+  const bootstrapAuth = useCallback(async () => {
     const userInfo = await getLocalStorage('userDetails');
 
     if (!userInfo) {
@@ -67,7 +67,7 @@ export default function AppLayout() {
     };
 
     void hydrate();
-  };
+  }, [logoutLocal, setUser, setIsLoggedIn]);
 
   useEffect(() => {
     const init = async () => {
@@ -93,7 +93,7 @@ export default function AppLayout() {
     };
 
     init();
-  }, []);
+  }, [bootstrapAuth, setLoading]);
 
   if (loading) {
     return (
