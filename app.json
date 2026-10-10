@@ -3,7 +3,7 @@
     "name": "Calculus Čitač Fiskala",
     "slug": "calculus-citac-fiskala",
     "owner": "nikolacalculusmd",
-    "version": "1.0.5",
+    "version": "1.0.7",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "calculusqr",
@@ -13,7 +13,7 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.calculus.calculuscitacfiskala",
-      "buildNumber": "6",
+      "buildNumber": "7",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "CFBundleDevelopmentRegion": "en"
@@ -24,7 +24,7 @@
         "foregroundImage": "./assets/images/icon.png",
         "backgroundColor": "#ffffff"
       },
-      "versionCode": 6,
+      "versionCode": 7,
       "permissions": [
         "android.permission.CAMERA"
       ],
@@ -38,7 +38,6 @@
       "favicon": "./assets/images/favicon.png"
     },
     "plugins": [
-      "./plugins/disable-android-lint",
       "expo-router",
       [
         "expo-splash-screen",
@@ -68,7 +67,6 @@
       "expo-status-bar"
     ],
     "locales": {
-      "base": "./locales/base.json",
       "en-US": "./locales/en-US.json",
       "en": "./locales/en.json",
       "sr": "./locales/sr.json",
