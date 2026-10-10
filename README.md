@@ -6,6 +6,10 @@
 
 👉 **Download now**: [Calculus Čitač Fiskala on Google Play](https://play.google.com/store/apps/details?id=com.calculus.calculuscitacfiskala)
 
+## 🔗 Apple App Store
+
+👉 **Download now**: [Calculus QR Scanner on Apple App Store](https://apps.apple.com/rs/app/calculus-qr-scanner/id6754340372)
+
 ## 📄 User Instructions
 
 - Download the user manual here: [Download User Instructions (PDF)](docs/instructions.pdf)
