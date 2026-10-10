@@ -185,7 +185,7 @@ const Config = () => {
     <SafeAreaView className='bg-white flex-1'>
       <View className='relative flex-1'>
         <View className='pb-32 px-7 h-screen bg-white'>
-          <View className='mt-5 flex-row items-center justify-between'>
+          <View className='mt-5 flex-row items-center justify-between z-20'>
             <Text className='text-xl font-rubik-bold'>Postavke profila</Text>
             <ConfigHeaderMenu onDeletePress={handleDeleteAccount} />
           </View>

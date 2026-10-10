@@ -1,7 +1,11 @@
-import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Text } from 'react-native';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { Redirect, Slot } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import {
+  ConnectionChecks,
+  ConnectionLoadingScreen,
+  ConnectionErrorScreen,
+  INITIAL_CHECKS,
+} from '@/components/connection/ConnectionScreens';
 
 import { useGlobalContext } from '@/lib/global-provider';
 import {
@@ -13,7 +17,6 @@ import {
   getDateTimeDBServer,
   getDateTimeWebServer,
 } from '@/lib/calculusWS/serviceInfoRequests';
-import { customAlert } from '@/lib/helpers';
 import {
   validateSession,
   getUserById,
@@ -21,6 +24,8 @@ import {
 
 export default function AppLayout() {
   const [apiReady, setApiReady] = useState<boolean | null>(null);
+  const [checks, setChecks] = useState<ConnectionChecks>(INITIAL_CHECKS);
+  const currentRun = useRef(0);
 
   const { loading, isLoggedIn, setLoading, setIsLoggedIn, setUser } =
     useGlobalContext();
@@ -69,48 +74,58 @@ export default function AppLayout() {
     void hydrate();
   }, [logoutLocal, setUser, setIsLoggedIn]);
 
-  useEffect(() => {
-    const init = async () => {
-      setLoading(true);
+  const initialize = useCallback(async () => {
+    const run = ++currentRun.current;
+    const isCurrent = () => run === currentRun.current;
+    setLoading(true);
+    setApiReady(null);
+    setChecks({ ...INITIAL_CHECKS });
 
+    try {
+      // Keep the independent network checks parallel. Each status updates
+      // when its actual request completes, rather than on a cosmetic timer.
       const [webReady, dbReady] = await Promise.all([
-        getDateTimeWebServer(),
-        getDateTimeDBServer(),
+        getDateTimeWebServer().then((ready) => {
+          if (isCurrent()) setChecks((previous) => ({ ...previous, server: ready ? 'success' : 'error' }));
+          return ready;
+        }),
+        getDateTimeDBServer().then((ready) => {
+          if (isCurrent()) setChecks((previous) => ({ ...previous, database: ready ? 'success' : 'error' }));
+          return ready;
+        }),
       ]);
 
+      if (!isCurrent()) return;
       if (webReady && dbReady) {
+        setChecks((previous) => ({ ...previous, account: 'checking' }));
         await bootstrapAuth();
+        if (!isCurrent()) return;
+        setChecks((previous) => ({ ...previous, account: 'success' }));
         setApiReady(true);
       } else {
-        customAlert(
-          'Upozorenje',
-          'Neuspešno povezivanje sa Web ili DB serverom. Pokušajte ponovo kasnije ili se obratite korisničkoj podršci.',
-        );
         setApiReady(false);
       }
-
-      setLoading(false);
-    };
-
-    init();
+    } catch {
+      if (isCurrent()) {
+        setChecks((previous) => ({ ...previous, account: 'error' }));
+        setApiReady(false);
+      }
+    } finally {
+      if (isCurrent()) setLoading(false);
+    }
   }, [bootstrapAuth, setLoading]);
 
-  if (loading) {
-    return (
-      <SafeAreaView className='bg-white h-full flex items-center justify-center'>
-        <ActivityIndicator className='text-primary-500' size='large' />
-      </SafeAreaView>
-    );
+  useEffect(() => {
+    const timer = setTimeout(() => { void initialize(); }, 0);
+    return () => { clearTimeout(timer); currentRun.current += 1; };
+  }, [initialize]);
+
+  if (loading || apiReady === null) {
+    return <ConnectionLoadingScreen checks={checks} />;
   }
 
   if (apiReady === false) {
-    return (
-      <SafeAreaView className='bg-white h-full flex items-center justify-center px-4'>
-        <Text className='text-center text-lg text-red-600'>
-          Aplikacija trenutno ne može da se poveže sa serverom.
-        </Text>
-      </SafeAreaView>
-    );
+    return <ConnectionErrorScreen checks={checks} onRetry={() => { void initialize(); }} />;
   }
 
   if (!isLoggedIn) return <Redirect href='/sign-in' />;
