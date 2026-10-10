@@ -4,10 +4,10 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  ActivityIndicator,
   Platform,
 } from 'react-native';
 import AuthFormScrollView from '@/components/ui/AuthFormScrollView';
+import LoadingButtonContent from '@/components/ui/LoadingButtonContent';
 import {
   Feather,
   MaterialCommunityIcons,
@@ -252,14 +252,15 @@ export default function RegisterForm({
         disabled={loading}
         onPress={handleRegister}
         className='bg-primary-500 py-3 rounded-lg'
+        accessibilityRole='button'
+        accessibilityLabel='Registruj se'
+        accessibilityState={{ busy: loading, disabled: loading }}
       >
-        {loading ? (
-          <ActivityIndicator size={'large'} color={'white'} />
-        ) : (
-          <Text className='text-lg font-rubik-medium text-center text-white'>
-            Registruj se
-          </Text>
-        )}
+        <LoadingButtonContent
+          loading={loading}
+          label='Registruj se'
+          textClassName='text-lg font-rubik-medium text-center text-white'
+        />
       </TouchableOpacity>
     </AuthFormScrollView>
   );

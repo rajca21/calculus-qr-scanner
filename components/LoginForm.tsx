@@ -4,10 +4,10 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  ActivityIndicator,
   Platform,
 } from 'react-native';
 import AuthFormScrollView from '@/components/ui/AuthFormScrollView';
+import LoadingButtonContent from '@/components/ui/LoadingButtonContent';
 import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 
@@ -134,18 +134,15 @@ export default function LoginForm({
         disabled={loading}
         onPress={handleLogin}
         className='bg-primary-500 py-3 rounded-lg'
+        accessibilityRole='button'
+        accessibilityLabel='Uloguj se'
+        accessibilityState={{ busy: loading, disabled: loading }}
       >
-        <View>
-          {loading ? (
-            <View className='w-full flex justify-center items-center'>
-              <ActivityIndicator size={'large'} color={'white'} />
-            </View>
-          ) : (
-            <Text className='text-lg font-rubik-medium text-center text-white'>
-              Uloguj se
-            </Text>
-          )}
-        </View>
+        <LoadingButtonContent
+          loading={loading}
+          label='Uloguj se'
+          textClassName='text-lg font-rubik-medium text-center text-white'
+        />
       </TouchableOpacity>
     </AuthFormScrollView>
   );

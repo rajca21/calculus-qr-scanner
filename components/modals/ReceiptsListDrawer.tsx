@@ -4,7 +4,6 @@ import {
   Text,
   TouchableOpacity,
   FlatList,
-  ActivityIndicator,
   StyleSheet,
   Platform,
 } from 'react-native';
@@ -14,6 +13,7 @@ import { useGlobalContext } from '@/lib/global-provider';
 import { customAlert } from '@/lib/helpers';
 import { exportReceipts } from '@/lib/calculusWS/receiptServices';
 import ReceiptCard from '../cards/ReceiptCard';
+import LoadingButtonContent from '@/components/ui/LoadingButtonContent';
 import BottomDrawer from '@/components/ui/BottomDrawer';
 
 type Props = {
@@ -142,16 +142,15 @@ export default function ReceiptsListDrawer({ visible, onClose }: Props) {
           className='bg-primary-500 w-full p-3 rounded-full mt-2'
           style={{ marginBottom: Platform.OS === 'ios' ? 8 : 36 }}
           activeOpacity={0.85}
+          accessibilityRole='button'
+          accessibilityLabel='Izvezi račune'
+          accessibilityState={{ busy: loading, disabled: loading }}
         >
-          <View style={{ alignItems: 'center', justifyContent: 'center' }}>
-            {loading ? (
-              <ActivityIndicator size='small' color='white' />
-            ) : (
-              <Text className='text-center text-white font-bold text-lg'>
-                Izvezi račune
-              </Text>
-            )}
-          </View>
+          <LoadingButtonContent
+            loading={loading}
+            label='Izvezi račune'
+            textClassName='text-center text-white font-bold text-lg'
+          />
         </TouchableOpacity>
       </View>
     </BottomDrawer>
