@@ -10,10 +10,13 @@ const ConfigHeaderMenu = ({ onDeletePress }: Props) => {
   const [open, setOpen] = useState(false);
 
   return (
-    <View className="relative">
+    <View className="relative z-20">
       <TouchableOpacity
         onPress={() => setOpen((prev) => !prev)}
         hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
+        accessibilityRole='button'
+        accessibilityLabel='Dodatne opcije'
+        accessibilityState={{ expanded: open }}
       >
         <Feather name="more-vertical" size={24} color="black" />
       </TouchableOpacity>
