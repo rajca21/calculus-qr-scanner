@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useRef, useState } from 'react';
 import {
   Image,
   Platform,
@@ -29,6 +29,8 @@ import { ReceiptDataFromTC } from '@/lib/types/Receipt';
 import ReceiptModal from '@/components/modals/ReceiptModal';
 import ReceiptsListDrawer from '@/components/modals/ReceiptsListDrawer';
 import DatabaseSelector from '@/components/DatabaseSelector';
+import ReceiptVerificationModal from '@/components/receipt-ocr/ReceiptVerificationModal';
+import { amountInMinorUnits, isOfficialReceiptUrl, ReceiptVerificationDraft } from '@/lib/receipt-verification';
 
 export default function Index() {
   const [facing, setFacing] = useState<CameraType>('back');
@@ -36,6 +38,9 @@ export default function Index() {
 
   const [scanned, setScanned] = useState<boolean>(false);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
+  const [manualEntryVisible, setManualEntryVisible] = useState(false);
+  const processingRef = useRef(false);
+  const receiptRequest = useRef<AbortController | null>(null);
 
   const [scannedData, setScannedData] = useState<string>('');
   const [showModal, setShowModal] = useState<boolean>(false);
@@ -53,26 +58,31 @@ export default function Index() {
   const { user, scannedReceipts, cameraOpen, setCameraOpen } =
     useGlobalContext();
 
-  const processScannedUrl = async (url: string) => {
-    if (scanned || isProcessing) return;
+  const processScannedUrl = async (url: string, expected?: ReceiptVerificationDraft): Promise<boolean> => {
+    if (scanned || processingRef.current) return false;
 
-    if (url && !url.startsWith('https://suf.purs.gov.rs')) {
-      setScanned(true);
+    if (!isOfficialReceiptUrl(url)) {
       customAlert(
         'Upozorenje!',
         'Molimo Vas skenirajte QR kod sa fiskalnog računa.',
       );
-      setTimeout(() => setScanned(false), 1500);
-      return;
+      return false;
     }
 
-    if (!url) return;
-
+    processingRef.current = true;
     setScanned(true);
     setIsProcessing(true);
     setScannedData(url);
-    await handleReadBarcode(url);
+    return await handleReadBarcode(url, expected);
   };
+
+  function openManualEntry() {
+    if (!user?.selectedDB || !user.databases?.some((database) => database.serialNum === user.selectedDB)) {
+      customAlert('Upozorenje!', 'Molimo izaberite bazu za skeniranje pre učitavanja računa.');
+      return;
+    }
+    if (!processingRef.current && !scanned) setManualEntryVisible(true);
+  }
 
   async function openCamera() {
     const hasSelectedDB =
@@ -156,32 +166,56 @@ export default function Index() {
     }
   };
   const resetScanFlags = () => {
+    receiptRequest.current?.abort();
+    receiptRequest.current = null;
+    processingRef.current = false;
     setScanned(false);
     setIsProcessing(false);
   };
 
-  const handleReadBarcode = async (url: string) => {
+  const handleReadBarcode = async (url: string, expected?: ReceiptVerificationDraft): Promise<boolean> => {
+    const request = new AbortController();
+    receiptRequest.current = request;
+    let timedOut = false;
+    const timeout = setTimeout(() => { timedOut = true; request.abort(); }, 20000);
     try {
-      const response = await fetch(url);
+      const response = await fetch(url, { signal: request.signal });
+      if (!response.ok || (response.url && !isOfficialReceiptUrl(response.url))) throw new Error('Invalid receipt response');
       const htmlText = await response.text();
+      if (request.signal.aborted) throw new Error('Receipt request aborted');
 
       const receiptData = getReceiptDataFromTC(htmlText);
       if (!receiptData) {
-        return customAlert(
+        customAlert(
           'Upozorenje!',
           'Došlo je do promene strukture na sajtu poreske uprave. Obratite se korisničkoj podršci',
         );
+        resetScanFlags();
+        return false;
+      }
+
+      if (expected && ((expected.invoiceNumber.trim() && receiptData.invoiceNumber?.toUpperCase() !== expected.invoiceNumber.trim().toUpperCase()) ||
+          (amountInMinorUnits(expected.totalAmount) !== null && amountInMinorUnits(receiptData.totalAmount ?? '') !== amountInMinorUnits(expected.totalAmount)))) {
+        customAlert('Upozorenje!', 'Podaci proverenog računa se ne poklapaju sa unetim PFR brojem ili iznosom. Proverite adresu računa.');
+        resetScanFlags();
+        return false;
       }
 
       setScannedReceiptDataFromTC(receiptData);
       setScannedInvoiceNumber(receiptData.invoiceNumber);
       setShowModal(true);
+      return true;
     } catch {
+      if (request.signal.aborted && !timedOut) return false;
       resetScanFlags();
       customAlert(
         'Greška!',
         'Greška prilikom parsiranja URL adrese poreske uprave!',
       );
+      return false;
+    } finally {
+      clearTimeout(timeout);
+      if (receiptRequest.current === request) receiptRequest.current = null;
     }
   };
 
@@ -194,9 +228,35 @@ export default function Index() {
       return () => {
         setCameraOpen(false);
         resetScanFlags();
+        setManualEntryVisible(false);
         setShowModal(false);
       };
     }, [setCameraOpen]),
+  );
+
+  const manualEntry = manualEntryVisible && (
+    <ReceiptVerificationModal
+      onClose={() => setManualEntryVisible(false)}
+      onImport={processScannedUrl}
+    />
+  );
+
+  const receiptPreview = showModal && !manualEntryVisible && (
+    <ReceiptModal
+      showModal={showModal}
+      setShowModal={(val) => {
+        setShowModal(val);
+        if (!val) { resetScanFlags(); setScannedData(''); setScannedInvoiceNumber(''); }
+      }}
+      scannedData={scannedData}
+      setScannedData={setScannedData}
+      setScanned={setScanned}
+      setProperScanned={() => {}}
+      scannedInvoiceNumber={scannedInvoiceNumber}
+      setScannedInvoiceNumber={setScannedInvoiceNumber}
+      scannedReceiptDataFromTC={scannedReceiptDataFromTC}
+      setScannedReceiptDataFromTC={setScannedReceiptDataFromTC}
+    />
   );
 
   if (cameraOpen) {
@@ -208,7 +268,7 @@ export default function Index() {
           barcodeScannerSettings={{
             barcodeTypes: ['qr'],
           }}
-          onBarcodeScanned={scanned ? undefined : handleBarcodeScanned}
+          onBarcodeScanned={scanned || manualEntryVisible ? undefined : handleBarcodeScanned}
         />
 
         <AntDesign
@@ -216,7 +276,7 @@ export default function Index() {
           name='close-circle'
           size={28}
           color='white'
-          onPress={() => setCameraOpen(false)}
+          onPress={() => { resetScanFlags(); setCameraOpen(false); }}
         />
         <MaterialIcons
           style={styles.flipButton}
@@ -249,32 +309,16 @@ export default function Index() {
           </>
         )}
 
-        <View style={styles.scanGuide}>
+        <View style={styles.scanGuide} pointerEvents='none'>
           <Ionicons name='scan-outline' size={250} color='white' />
           <Text style={styles.scanText}>Skenirajte QR kod</Text>
         </View>
 
-        {showModal && (
-          <ReceiptModal
-            showModal={showModal}
-            setShowModal={(val) => {
-              setShowModal(val);
-              if (!val) {
-                resetScanFlags();
-                setScannedData('');
-                setScannedInvoiceNumber('');
-              }
-            }}
-            scannedData={scannedData}
-            setScannedData={setScannedData}
-            setScanned={setScanned}
-            setProperScanned={() => {}}
-            scannedInvoiceNumber={scannedInvoiceNumber}
-            setScannedInvoiceNumber={setScannedInvoiceNumber}
-            scannedReceiptDataFromTC={scannedReceiptDataFromTC}
-            setScannedReceiptDataFromTC={setScannedReceiptDataFromTC}
-          />
-        )}
+        <Pressable style={styles.manualButton} onPress={openManualEntry} accessibilityRole='button'>
+          <Text className='font-rubik-medium' style={{ color: '#2368fd' }}>QR kod nije čitljiv?</Text>
+        </Pressable>
+        {manualEntry}
+        {receiptPreview}
       </View>
     );
   }
@@ -344,6 +388,11 @@ export default function Index() {
         Kliknite ikonicu iznad kako biste otvorili kameru i započeli skeniranje
         računa
       </Text>
+      <TouchableOpacity onPress={openManualEntry} style={{ marginTop: 24, padding: 12 }}>
+        <Text className='font-rubik-medium' style={{ color: 'white', textDecorationLine: 'underline' }}>Unesi račun bez QR koda</Text>
+      </TouchableOpacity>
+      {manualEntry}
+      {receiptPreview}
     </View>
   );
 }
@@ -355,6 +404,10 @@ const styles = StyleSheet.create({
   },
   fullscreenCamera: {
     flex: 1,
+  },
+  manualButton: {
+    position: 'absolute', bottom: 32, alignSelf: 'center', backgroundColor: 'white',
+    paddingHorizontal: 20, paddingVertical: 12, borderRadius: 16,
   },
   closeButton: {
     position: 'absolute',
