@@ -90,6 +90,7 @@ const SignIn = () => {
         visible={showLoginForm}
         onClose={() => setShowLoginForm(false)}
         heightRatio={0.55}
+        keyboardAware
       >
         <LoginForm setShowLoginForm={setShowLoginForm} />
       </BottomDrawer>
@@ -98,6 +99,7 @@ const SignIn = () => {
         visible={showRegisterForm}
         onClose={() => setShowRegisterForm(false)}
         heightRatio={0.8}
+        keyboardAware
       >
         <RegisterForm setShowRegisterForm={setShowRegisterForm} />
       </BottomDrawer>

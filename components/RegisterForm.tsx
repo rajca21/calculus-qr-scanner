@@ -6,9 +6,8 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Platform,
-  ScrollView,
 } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import AuthFormScrollView from '@/components/ui/AuthFormScrollView';
 import {
   Feather,
   MaterialCommunityIcons,
@@ -101,181 +100,167 @@ export default function RegisterForm({
   };
 
   return (
-    <KeyboardAwareScrollView
-      style={{ flex: 1 }}
-      contentContainerStyle={{ flexGrow: 1 }}
-      keyboardShouldPersistTaps='handled'
-      bottomOffset={84}
-    >
-      <View className='flex-1 bg-white'>
-        <Text className='text-2xl font-rubik-medium text-center mb-4'>
-          Kreirajte nalog
-        </Text>
+    <AuthFormScrollView>
+      <Text className='text-2xl font-rubik-medium text-center mb-4'>
+        Kreirajte nalog
+      </Text>
 
-        <View className='flex-1'>
-          <ScrollView
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: 20 }}
-          >
-            {/* Email */}
-            <View
-              className={`flex flex-row items-center border border-gray-300 rounded-lg px-4 ${
-                Platform.OS === 'ios' ? 'py-4' : 'py-1'
-              } mb-4`}
-            >
-              <Feather name='mail' size={24} color='black' />
-              <TextInput
-                placeholder='Email adresa *'
-                className='pl-4 font-rubik border-none outline-none w-full'
-                textContentType='emailAddress'
-                value={email}
-                onChangeText={(text) => setEmail(text)}
-                keyboardType='email-address'
-                autoCapitalize='none'
-                autoCorrect={false}
-              />
-            </View>
-
-            {/* Lozinka */}
-            <View
-              className={`flex flex-row items-center border border-gray-300 rounded-lg px-4 ${
-                Platform.OS === 'ios' ? 'py-4' : 'py-1'
-              } mb-4`}
-            >
-              <Feather name='lock' size={24} color='black' />
-              <TextInput
-                placeholder='Lozinka *'
-                secureTextEntry={!showPassword}
-                textContentType='oneTimeCode'
-                className='px-4 font-rubik border-none outline-none flex-1'
-                value={password}
-                onChangeText={(text) => setPassword(text)}
-              />
-              {password.length > 0 && (
-                <TouchableOpacity
-                  onPress={() => setShowPassword((prev) => !prev)}
-                >
-                  <Feather
-                    name={showPassword ? 'eye-off' : 'eye'}
-                    size={22}
-                    color='black'
-                  />
-                </TouchableOpacity>
-              )}
-            </View>
-
-            {/* Potvrda lozinke */}
-            <View
-              className={`flex flex-row items-center border border-gray-300 rounded-lg px-4 ${
-                Platform.OS === 'ios' ? 'py-4' : 'py-1'
-              } mb-4`}
-            >
-              <Feather name='lock' size={24} color='black' />
-              <TextInput
-                placeholder='Potvrda lozinke *'
-                secureTextEntry={!showConfirmPassword}
-                textContentType='oneTimeCode'
-                className='px-4 font-rubik border-none outline-none flex-1'
-                value={confirmPassword}
-                onChangeText={(text) => setConfirmPassword(text)}
-              />
-              {confirmPassword.length > 0 && (
-                <TouchableOpacity
-                  onPress={() => setShowConfirmPassword((prev) => !prev)}
-                >
-                  <Feather
-                    name={showConfirmPassword ? 'eye-off' : 'eye'}
-                    size={22}
-                    color='black'
-                  />
-                </TouchableOpacity>
-              )}
-            </View>
-
-            {/* PIB */}
-            {!isIOS && (
-              <View
-                className={`flex flex-row items-center border border-gray-300 rounded-lg px-4 ${
-                  isIOS ? 'py-4' : 'py-1'
-                } mb-4`}
-              >
-                <MaterialCommunityIcons
-                  name='office-building-outline'
-                  size={24}
-                  color='black'
-                />
-                <TextInput
-                  placeholder='PIB *'
-                  textContentType='oneTimeCode'
-                  className='pl-4 font-rubik border-none outline-none w-full'
-                  value={pib}
-                  onChangeText={setPib}
-                />
-              </View>
-            )}
-
-            {/* Naziv firme */}
-            {!isIOS && (
-              <View
-                className={`flex flex-row items-center border border-gray-300 rounded-lg px-4 ${
-                  isIOS ? 'py-4' : 'py-1'
-                } mb-4`}
-              >
-                <MaterialCommunityIcons
-                  name='office-building-outline'
-                  size={24}
-                  color='black'
-                />
-                <TextInput
-                  placeholder='Naziv firme *'
-                  textContentType='oneTimeCode'
-                  className='pl-4 font-rubik border-none outline-none w-full'
-                  value={companyName}
-                  onChangeText={setCompanyName}
-                />
-              </View>
-            )}
-
-            {/* Kontakt */}
-            <View
-              className={`flex flex-row items-center border border-gray-300 rounded-lg px-4 ${
-                Platform.OS === 'ios' ? 'py-4' : 'py-1'
-              } mb-4`}
-            >
-              <FontAwesome6 name='contact-book' size={24} color='black' />
-              <TextInput
-                placeholder='Kontakt telefon/email adresa'
-                textContentType='oneTimeCode'
-                className='pl-4 font-rubik border-none outline-none w-full'
-                value={contact}
-                onChangeText={(text) => setContact(text)}
-                autoCapitalize='none'
-                autoCorrect={false}
-              />
-            </View>
-
-            {!!error && (
-              <Text className='mb-4 text-danger font-rubik-bold text-md'>
-                {error}
-              </Text>
-            )}
-
-            <TouchableOpacity
-              disabled={loading}
-              onPress={handleRegister}
-              className='bg-primary-500 py-3 rounded-lg'
-            >
-              {loading ? (
-                <ActivityIndicator size={'large'} color={'white'} />
-              ) : (
-                <Text className='text-lg font-rubik-medium text-center text-white'>
-                  Registruj se
-                </Text>
-              )}
-            </TouchableOpacity>
-          </ScrollView>
-        </View>
+      {/* Email */}
+      <View
+        className={`flex flex-row items-center border border-gray-300 rounded-lg px-4 ${
+          Platform.OS === 'ios' ? 'py-4' : 'py-1'
+        } mb-4`}
+      >
+        <Feather name='mail' size={24} color='black' />
+        <TextInput
+          placeholder='Email adresa *'
+          className='pl-4 font-rubik border-none outline-none flex-1'
+          textContentType='emailAddress'
+          value={email}
+          onChangeText={(text) => setEmail(text)}
+          keyboardType='email-address'
+          autoCapitalize='none'
+          autoCorrect={false}
+        />
       </View>
-    </KeyboardAwareScrollView>
+
+      {/* Lozinka */}
+      <View
+        className={`flex flex-row items-center border border-gray-300 rounded-lg px-4 ${
+          Platform.OS === 'ios' ? 'py-4' : 'py-1'
+        } mb-4`}
+      >
+        <Feather name='lock' size={24} color='black' />
+        <TextInput
+          placeholder='Lozinka *'
+          secureTextEntry={!showPassword}
+          textContentType='oneTimeCode'
+          className='px-4 font-rubik border-none outline-none flex-1'
+          value={password}
+          onChangeText={(text) => setPassword(text)}
+        />
+        {password.length > 0 && (
+          <TouchableOpacity
+            onPress={() => setShowPassword((prev) => !prev)}
+          >
+            <Feather
+              name={showPassword ? 'eye-off' : 'eye'}
+              size={22}
+              color='black'
+            />
+          </TouchableOpacity>
+        )}
+      </View>
+
+      {/* Potvrda lozinke */}
+      <View
+        className={`flex flex-row items-center border border-gray-300 rounded-lg px-4 ${
+          Platform.OS === 'ios' ? 'py-4' : 'py-1'
+        } mb-4`}
+      >
+        <Feather name='lock' size={24} color='black' />
+        <TextInput
+          placeholder='Potvrda lozinke *'
+          secureTextEntry={!showConfirmPassword}
+          textContentType='oneTimeCode'
+          className='px-4 font-rubik border-none outline-none flex-1'
+          value={confirmPassword}
+          onChangeText={(text) => setConfirmPassword(text)}
+        />
+        {confirmPassword.length > 0 && (
+          <TouchableOpacity
+            onPress={() => setShowConfirmPassword((prev) => !prev)}
+          >
+            <Feather
+              name={showConfirmPassword ? 'eye-off' : 'eye'}
+              size={22}
+              color='black'
+            />
+          </TouchableOpacity>
+        )}
+      </View>
+
+      {/* PIB */}
+      {!isIOS && (
+        <View
+          className={`flex flex-row items-center border border-gray-300 rounded-lg px-4 ${
+            isIOS ? 'py-4' : 'py-1'
+          } mb-4`}
+        >
+          <MaterialCommunityIcons
+            name='office-building-outline'
+            size={24}
+            color='black'
+          />
+          <TextInput
+            placeholder='PIB *'
+            textContentType='oneTimeCode'
+            className='pl-4 font-rubik border-none outline-none flex-1'
+            value={pib}
+            onChangeText={setPib}
+          />
+        </View>
+      )}
+
+      {/* Naziv firme */}
+      {!isIOS && (
+        <View
+          className={`flex flex-row items-center border border-gray-300 rounded-lg px-4 ${
+            isIOS ? 'py-4' : 'py-1'
+          } mb-4`}
+        >
+          <MaterialCommunityIcons
+            name='office-building-outline'
+            size={24}
+            color='black'
+          />
+          <TextInput
+            placeholder='Naziv firme *'
+            textContentType='oneTimeCode'
+            className='pl-4 font-rubik border-none outline-none flex-1'
+            value={companyName}
+            onChangeText={setCompanyName}
+          />
+        </View>
+      )}
+
+      {/* Kontakt */}
+      <View
+        className={`flex flex-row items-center border border-gray-300 rounded-lg px-4 ${
+          Platform.OS === 'ios' ? 'py-4' : 'py-1'
+        } mb-4`}
+      >
+        <FontAwesome6 name='contact-book' size={24} color='black' />
+        <TextInput
+          placeholder='Kontakt telefon/email adresa'
+          textContentType='oneTimeCode'
+          className='pl-4 font-rubik border-none outline-none flex-1'
+          value={contact}
+          onChangeText={(text) => setContact(text)}
+          autoCapitalize='none'
+          autoCorrect={false}
+        />
+      </View>
+
+      {!!error && (
+        <Text className='mb-4 text-danger font-rubik-bold text-md'>
+          {error}
+        </Text>
+      )}
+
+      <TouchableOpacity
+        disabled={loading}
+        onPress={handleRegister}
+        className='bg-primary-500 py-3 rounded-lg'
+      >
+        {loading ? (
+          <ActivityIndicator size={'large'} color={'white'} />
+        ) : (
+          <Text className='text-lg font-rubik-medium text-center text-white'>
+            Registruj se
+          </Text>
+        )}
+      </TouchableOpacity>
+    </AuthFormScrollView>
   );
 }

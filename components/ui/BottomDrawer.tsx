@@ -1,5 +1,14 @@
 import React, { useEffect } from 'react';
-import { Modal, View, StyleSheet, Dimensions, Platform } from 'react-native';
+import {
+  Keyboard,
+  Modal,
+  View,
+  StyleSheet,
+  useWindowDimensions,
+  Platform,
+} from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useReanimatedKeyboardAnimation } from 'react-native-keyboard-controller';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -17,18 +26,25 @@ type BottomDrawerProps = {
   visible: boolean;
   onClose: () => void;
   heightRatio?: number;
+  keyboardAware?: boolean;
   children: React.ReactNode;
 };
-
-const { height: SCREEN_H } = Dimensions.get('window');
 
 export default function BottomDrawer({
   visible,
   onClose,
   heightRatio = 0.6,
+  keyboardAware = false,
   children,
 }: BottomDrawerProps) {
-  const SHEET_H = Math.max(240, Math.min(SCREEN_H, SCREEN_H * heightRatio));
+  const { height: screenHeight } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const { height: keyboardHeight } = useReanimatedKeyboardAnimation();
+  const maxSheetHeight = Math.max(0, screenHeight - insets.top - 12);
+  const SHEET_H = Math.min(
+    maxSheetHeight,
+    Math.max(240, screenHeight * heightRatio),
+  );
 
   const ty = useSharedValue(SHEET_H);
   const backdrop = useSharedValue(0);
@@ -46,6 +62,7 @@ export default function BottomDrawer({
   }, [visible, SHEET_H, ty, backdrop]);
 
   const closeDrawer = () => {
+    Keyboard.dismiss();
     ty.set(
       withTiming(SHEET_H, { duration: 220 }, (finished) => {
         if (finished) runOnJS(onClose)();
@@ -55,6 +72,10 @@ export default function BottomDrawer({
   };
 
   const startY = useSharedValue(0);
+  const finishClose = () => {
+    Keyboard.dismiss();
+    onClose();
+  };
   const pan = Gesture.Pan()
     .onStart(() => {
       startY.set(ty.get());
@@ -70,7 +91,7 @@ export default function BottomDrawer({
       if (shouldClose) {
         ty.set(
           withTiming(SHEET_H, { duration: 200 }, (finished) => {
-            if (finished) runOnJS(onClose)();
+            if (finished) runOnJS(finishClose)();
           }),
         );
         backdrop.set(withTiming(0, { duration: 160 }));
@@ -82,6 +103,12 @@ export default function BottomDrawer({
 
   const sheetStyle = useAnimatedStyle(() => ({
     transform: [{ translateY: ty.get() }],
+    // The form scroll view owns the keyboard inset. Grow the sheet by that
+    // amount so its visible area moves up without applying a second inset.
+    height: Math.min(
+      maxSheetHeight,
+      SHEET_H + (keyboardAware ? Math.max(0, -keyboardHeight.get()) : 0),
+    ),
   }));
 
   const backdropStyle = useAnimatedStyle(() => ({
@@ -95,8 +122,9 @@ export default function BottomDrawer({
       visible={true}
       transparent
       animationType='none'
-      onRequestClose={onClose}
+      onRequestClose={closeDrawer}
       statusBarTranslucent
+      navigationBarTranslucent
     >
       <GestureHandlerRootView style={{ flex: 1 }}>
         <Animated.View
@@ -107,7 +135,16 @@ export default function BottomDrawer({
 
         <View style={styles.wrap} pointerEvents='box-none'>
           <Animated.View
-            style={[styles.sheet, { height: SHEET_H }, sheetStyle]}
+            style={[
+              styles.sheet,
+              {
+                paddingBottom: Math.max(
+                  insets.bottom,
+                  Platform.OS === 'ios' ? 24 : 16,
+                ),
+              },
+              sheetStyle,
+            ]}
             renderToHardwareTextureAndroid
             needsOffscreenAlphaCompositing
           >
@@ -139,7 +176,6 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingHorizontal: 20,
-    paddingBottom: Platform.select({ ios: 24, android: 16 }) as number,
     paddingTop: 8,
     elevation: 10,
     shadowColor: '#000',

@@ -6,9 +6,8 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   Platform,
-  ScrollView,
 } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
+import AuthFormScrollView from '@/components/ui/AuthFormScrollView';
 import { useRouter } from 'expo-router';
 import { Feather } from '@expo/vector-icons';
 
@@ -73,95 +72,81 @@ export default function LoginForm({
   };
 
   return (
-    <KeyboardAwareScrollView
-      style={{ flex: 1 }}
-      contentContainerStyle={{ flexGrow: 1 }}
-      keyboardShouldPersistTaps='handled'
-      bottomOffset={84}
-    >
-      <View className='flex-1 bg-white'>
-        <Text className='text-2xl font-rubik-medium text-center mb-12'>
-          Unesite vaše kredencijale
-        </Text>
+    <AuthFormScrollView>
+      <Text className='text-2xl font-rubik-medium text-center mb-12'>
+        Unesite vaše kredencijale
+      </Text>
 
-        <View className='flex-1'>
-          <ScrollView
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: 20 }}
-          >
-            {/* Email */}
-            <View
-              className={`flex flex-row items-center border border-gray-300 rounded-lg px-4 ${
-                Platform.OS === 'ios' ? 'py-4' : 'py-1'
-              } mb-4`}
-            >
-              <Feather name='mail' size={24} color='black' />
-              <TextInput
-                placeholder='Email adresa'
-                className='pl-4 font-rubik border-none outline-none w-full'
-                value={email}
-                textContentType='emailAddress'
-                onChangeText={(text) => setEmail(text)}
-                keyboardType='email-address'
-                autoCapitalize='none'
-                autoCorrect={false}
-              />
-            </View>
-
-            {/* Lozinka */}
-            <View
-              className={`flex flex-row items-center border border-gray-300 rounded-lg px-4 ${
-                Platform.OS === 'ios' ? 'py-4' : 'py-1'
-              } mb-4`}
-            >
-              <Feather name='lock' size={24} color='black' />
-              <TextInput
-                placeholder='Lozinka'
-                secureTextEntry={!showPassword}
-                textContentType='oneTimeCode'
-                className='px-4 font-rubik border-none outline-none flex-1'
-                value={password}
-                onChangeText={(text) => setPassword(text)}
-              />
-              {password.length > 0 && (
-                <TouchableOpacity
-                  onPress={() => setShowPassword((prev) => !prev)}
-                >
-                  <Feather
-                    name={showPassword ? 'eye-off' : 'eye'}
-                    size={22}
-                    color='black'
-                  />
-                </TouchableOpacity>
-              )}
-            </View>
-
-            {!!error && (
-              <Text className='mb-4 text-danger font-rubik-bold text-md'>
-                {error}
-              </Text>
-            )}
-
-            <TouchableOpacity
-              disabled={loading}
-              onPress={handleLogin}
-              className='bg-primary-500 py-3 rounded-lg'
-            >
-              <View>
-                {loading ? (
-                  <View className='w-full flex justify-center items-center'>
-                    <ActivityIndicator size={'large'} color={'white'} />
-                  </View>
-                ) : (
-                  <Text className='text-lg font-rubik-medium text-center text-white'>
-                    Uloguj se
-                  </Text>
-                )}
-              </View>
-            </TouchableOpacity>
-          </ScrollView>
-        </View>
+      {/* Email */}
+      <View
+        className={`flex flex-row items-center border border-gray-300 rounded-lg px-4 ${
+          Platform.OS === 'ios' ? 'py-4' : 'py-1'
+        } mb-4`}
+      >
+        <Feather name='mail' size={24} color='black' />
+        <TextInput
+          placeholder='Email adresa'
+          className='pl-4 font-rubik border-none outline-none flex-1'
+          value={email}
+          textContentType='emailAddress'
+          onChangeText={(text) => setEmail(text)}
+          keyboardType='email-address'
+          autoCapitalize='none'
+          autoCorrect={false}
+        />
       </View>
-    </KeyboardAwareScrollView>
+
+      {/* Lozinka */}
+      <View
+        className={`flex flex-row items-center border border-gray-300 rounded-lg px-4 ${
+          Platform.OS === 'ios' ? 'py-4' : 'py-1'
+        } mb-4`}
+      >
+        <Feather name='lock' size={24} color='black' />
+        <TextInput
+          placeholder='Lozinka'
+          secureTextEntry={!showPassword}
+          textContentType='oneTimeCode'
+          className='px-4 font-rubik border-none outline-none flex-1'
+          value={password}
+          onChangeText={(text) => setPassword(text)}
+        />
+        {password.length > 0 && (
+          <TouchableOpacity
+            onPress={() => setShowPassword((prev) => !prev)}
+          >
+            <Feather
+              name={showPassword ? 'eye-off' : 'eye'}
+              size={22}
+              color='black'
+            />
+          </TouchableOpacity>
+        )}
+      </View>
+
+      {!!error && (
+        <Text className='mb-4 text-danger font-rubik-bold text-md'>
+          {error}
+        </Text>
+      )}
+
+      <TouchableOpacity
+        disabled={loading}
+        onPress={handleLogin}
+        className='bg-primary-500 py-3 rounded-lg'
+      >
+        <View>
+          {loading ? (
+            <View className='w-full flex justify-center items-center'>
+              <ActivityIndicator size={'large'} color={'white'} />
+            </View>
+          ) : (
+            <Text className='text-lg font-rubik-medium text-center text-white'>
+              Uloguj se
+            </Text>
+          )}
+        </View>
+      </TouchableOpacity>
+    </AuthFormScrollView>
   );
 }
