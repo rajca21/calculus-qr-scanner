@@ -2,15 +2,41 @@
 
 ## User flow
 
-Open **Unesi račun bez QR koda** (or **QR kod nije čitljiv?** from the scanner).
-Choose **Fotografiši račun**, aim at the section containing the total and fiscal
-verification fields, and take a focused still photo. **Izaberi sliku računa** also
-supports existing photos.
+Open the QR camera, then tap the **OCR document scanner icon above the gallery**.
+After 10 seconds without scanning or interacting, the camera displays a Serbian
+OCR hint with a curved arrow. Scanning any code or touching a camera control
+cancels the hint for that session; reopening the camera starts a fresh timer.
 
-The app fills PFR broj računa, PFR vreme, Brojač računa, its suffix, and Ukupan
-iznos. Compare every field to the photo, correct errors, and fill missing fields
-highlighted in amber. A retake replaces the entire draft so different receipts
-cannot be mixed. Then use the existing official verification and journal QR flow.
+The full-screen **OCR skener računa** sheet has Info, Camera, and Gallery icons.
+Info expands the instructions. Camera and Gallery populate the form from a receipt
+photo; manual entry remains available. The home-page OCR link and URL-entry screen
+have been removed.
+
+Compare the recognized fields with the photo. Invalid fields show individual
+warnings after blur or submission. PFR identifiers use nonempty alphanumeric
+segments followed by digits, with no fixed segment lengths; counters use digits /
+digits. Date/time is masked as `DD.MM.GGGG. HH:mm:ss`, and the suffix dropdown
+defaults to PP. A retake replaces the entire draft to avoid mixing receipts.
+
+Submit the form to open official verification inside the safe area. Review or
+complete the official fields and press **Pošalji**. Once receipt details appear,
+the page scrolls to the bottom once and the instructions change to explain opening
+**Žurnal**. Scroll until its QR is visible and tap **Učitaj QR iz žurnala**. The app
+fetches the recovered official URL and adds the receipt directly to the existing
+scanner list, then returns to the camera. There is no URL or preview step. Duplicate
+receipts are not added, and the existing 30-receipt limit is enforced. Corrections
+made on TaxCore are checked against the resulting official receipt details.
+
+## Validation for the scanner UX update
+
+- Typecheck, lint, and 62 automated tests pass, including variable identifier
+  lengths, masked typing/backspace/paste, field errors, result detection without
+  a URL change, preserving TaxCore corrections, scrolling once, direct import,
+  duplicates, and the receipt limit.
+- No native dependencies or native OCR code changed. Refresh the existing
+  OCR-enabled development build through Metro; this update needs no native rebuild.
+- Visual checks and the full live TaxCore flow on Android/iOS remain to be checked
+  on devices. The simulator UI tool was unavailable during this update.
 
 ## Native engines
 
@@ -54,7 +80,7 @@ Local iOS builds need an Xcode version compatible with Expo SDK 57 (the installe
 Xcode 26.2 is older than its requirement). No local Android SDK was found during
 implementation. Use EAS for the development builds unless updating local tools.
 
-## Validation completed
+## Earlier OCR engine validation
 
 - Typecheck and lint pass.
 - 54 tests pass, including Cyrillic/Latin labels, decimal formats, neighboring
@@ -83,8 +109,17 @@ successful compiled native app.
    recognition. Manual entry should remain usable.
 6. Start from the live QR scanner: its camera is released before opening receipt
    photo capture. Verify safe areas and keyboard scrolling on both platforms.
-7. Complete official verification, recover the journal QR, preview/save the
-   receipt, check duplicate handling, and export to a test database.
+7. Leave the QR camera idle for 10 seconds. Check the hint and curved arrow on a
+   small and large screen. Scan or press each camera control before and after the
+   hint appears; it must disappear and stay dismissed until a fresh camera session.
+8. Check field warnings with `A-B-123`, `1/123456789`, invalid dates, and malformed
+   amounts. Type, delete, and paste a date; confirm PP is preselected and change it.
+9. Complete official verification, including a rejected submission and corrections
+   made on TaxCore. Check the initial/result instructions and one-time scrolling.
+10. Recover the journal QR: the receipt must appear directly in the scanned list
+    and the camera must reopen. Retry the same receipt, a full list of 30, and a
+    network failure. Confirm there is no address-entry or screenshot-import step.
+11. Export to a test database after checking the recovered receipt details.
 
 ## Sources
 

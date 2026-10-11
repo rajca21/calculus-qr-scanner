@@ -65,28 +65,37 @@ export function normalizeReceiptDate(value: string): string | null {
   return `${+day}.${+month}.${year}. ${hour.padStart(2, '0')}:${minute}`;
 }
 
-export function validateVerificationDraft(
-  draft: ReceiptVerificationDraft,
-): string | null {
-  if (
-    !/^[a-zA-Z0-9]{8}-[a-zA-Z0-9]{8}-[1-9]\d*$/.test(
-      draft.invoiceNumber.trim(),
-    ) ||
-    draft.invoiceNumber.trim().length > 40
-  )
-    return 'Unesite ispravan PFR broj računa (XXXXXXXX-XXXXXXXX-123).';
-  if (
-    !/^\d+\/\d+$/.test(draft.counter.trim()) ||
-    draft.counter.trim().length > 30
-  )
-    return 'Unesite brojač računa u obliku 123/123.';
+export type VerificationErrors = Partial<Record<keyof ReceiptVerificationDraft, string>>;
+
+export function getVerificationErrors(draft: ReceiptVerificationDraft): VerificationErrors {
+  const errors: VerificationErrors = {};
+  if (!/^[a-zA-Z0-9]+-[a-zA-Z0-9]+-\d+$/.test(draft.invoiceNumber.trim()))
+    errors.invoiceNumber = 'Unesite PFR broj u obliku ABC-DEF-123.';
+  if (!/^\d+\/\d+$/.test(draft.counter.trim()))
+    errors.counter = 'Unesite brojač računa u obliku 123/123.';
   if (!Object.hasOwn(COUNTER_SUFFIXES, draft.suffix))
-    return 'Izaberite oznaku uz brojač računa.';
+    errors.suffix = 'Izaberite oznaku uz brojač računa.';
   if (amountInMinorUnits(draft.totalAmount) === null)
-    return 'Unesite iznos, na primer 3.060,00 ili 3060.00.';
+    errors.totalAmount = 'Unesite iznos, na primer 3.060,00 ili 3060.00.';
   if (!normalizeReceiptDate(draft.dateTime))
-    return 'Unesite PFR vreme sa računa, na primer 10.10.2026. 14:35:12.';
-  return null;
+    errors.dateTime = 'Unesite ispravan datum i vreme: DD.MM.GGGG. HH:mm:ss.';
+  return errors;
+}
+
+export function validateVerificationDraft(draft: ReceiptVerificationDraft): string | null {
+  return Object.values(getVerificationErrors(draft))[0] ?? null;
+}
+
+// Add separators only when the next digit exists, so backspace works naturally.
+export function maskReceiptDate(value: string): string {
+  const formatted = value.trim().match(/^(\d{1,2})\.(\d{1,2})\.(\d{4})\.?\s+(\d{1,2}):(\d{2})(?::(\d{2}))?$/);
+  const digits = formatted
+    ? formatted.slice(1).filter(Boolean).map((part, index) => index === 2 ? part : part.padStart(2, '0')).join('')
+    : value.replace(/\D/g, '').slice(0, 14);
+  return digits.split('').map((digit, index) => {
+    const separator = ({ 2: '.', 4: '.', 8: '. ', 10: ':', 12: ':' } as Record<number, string>)[index] ?? '';
+    return separator + digit;
+  }).join('');
 }
 
 export function isOfficialReceiptUrl(value: string): boolean {
@@ -123,6 +132,7 @@ export function isOfficialPage(value: string): boolean {
 
 export function buildVerificationScript(
   draft: ReceiptVerificationDraft,
+  prefill = true,
 ): string {
   const fields = JSON.stringify({
     InvoiceNumberSe: draft.invoiceNumber.trim(),
@@ -138,14 +148,10 @@ export function buildVerificationScript(
     (function () {
       if (location.origin !== 'https://suf.purs.gov.rs') return;
       function send(message) { window.ReactNativeWebView.postMessage(JSON.stringify(message)); }
-      function receiptUrl(value) {
-        try {
-          var url = new URL(value, location.href);
-          return url.origin === location.origin && /^\\/v\\/?$/i.test(url.pathname) &&
-            url.searchParams.get('vl') ? url.href : null;
-        } catch (_) { return null; }
-      }
-      if (location.pathname.replace(/\\/$/, '') === '/verify' && document.getElementById('verifyForm')) {
+      var form = document.getElementById('verifyForm');
+      if (form) send({ type: 'verification-page', stage: 'form' });
+      if (form && ${prefill} && !window.__calculusPrefilled) {
+        window.__calculusPrefilled = true;
         var fields = ${fields};
         var attempts = 0;
         var timer = setInterval(function () {
@@ -165,21 +171,23 @@ export function buildVerificationScript(
         }, 300);
       }
       if (window.__calculusReceiptObserver) window.__calculusReceiptObserver.disconnect();
-      var sent = '';
-      function findReceipt() {
-        var candidate = receiptUrl(location.href);
-        if (!candidate) {
-          var links = document.querySelectorAll('a[href], link[rel="canonical"]');
-          for (var i = 0; i < links.length; i++) {
-            candidate = receiptUrl(links[i].href);
-            if (candidate) break;
-          }
+      function detectResult() {
+        var invoice = document.getElementById('invoiceNumberLabel');
+        // The form can stay on /verify after failed validation. Only a receipt result advances the UI.
+        if (!invoice || !invoice.textContent.trim()) return;
+        var amount = document.getElementById('totalAmountLabel');
+        send({ type: 'verification-page', stage: 'result', invoiceNumber: invoice.textContent.trim(),
+          totalAmount: amount ? amount.textContent.trim() : '' });
+        if (!window.__calculusResultScrolled) {
+          window.__calculusResultScrolled = true;
+          setTimeout(function () {
+            window.scrollTo(0, Math.max(document.body.scrollHeight, document.documentElement.scrollHeight));
+          }, 400);
         }
-        if (candidate && candidate !== sent) { sent = candidate; send({ type: 'receipt-url', url: candidate }); }
       }
-      findReceipt();
-      window.__calculusReceiptObserver = new MutationObserver(findReceipt);
-      window.__calculusReceiptObserver.observe(document.documentElement, { childList: true, subtree: true });
+      detectResult();
+      window.__calculusReceiptObserver = new MutationObserver(detectResult);
+      window.__calculusReceiptObserver.observe(document.documentElement, { childList: true, subtree: true, characterData: true });
     })(); true;
   `;
 }

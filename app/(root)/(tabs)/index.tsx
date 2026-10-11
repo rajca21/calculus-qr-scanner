@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
   Image,
   Platform,
@@ -29,6 +29,8 @@ import { ReceiptDataFromTC } from '@/lib/types/Receipt';
 import ReceiptModal from '@/components/modals/ReceiptModal';
 import ReceiptsListDrawer from '@/components/modals/ReceiptsListDrawer';
 import DatabaseSelector from '@/components/DatabaseSelector';
+import OcrCameraHint from '@/components/receipt-ocr/OcrCameraHint';
+import { appendVerifiedReceipt } from '@/lib/receipt-import';
 import ReceiptVerificationModal from '@/components/receipt-ocr/ReceiptVerificationModal';
 import { amountInMinorUnits, isOfficialReceiptUrl, ReceiptVerificationDraft } from '@/lib/receipt-verification';
 
@@ -39,6 +41,15 @@ export default function Index() {
   const [scanned, setScanned] = useState<boolean>(false);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [manualEntryVisible, setManualEntryVisible] = useState(false);
+  const [ocrHintVisible, setOcrHintVisible] = useState(false);
+  const [cameraSize, setCameraSize] = useState({ width: 0, height: 0 });
+  const hintDismissed = useRef(false);
+  const hintTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const dismissOcrHint = useCallback(() => {
+    hintDismissed.current = true;
+    if (hintTimer.current) clearTimeout(hintTimer.current);
+    setOcrHintVisible(false);
+  }, []);
   const processingRef = useRef(false);
   const receiptRequest = useRef<AbortController | null>(null);
 
@@ -55,10 +66,23 @@ export default function Index() {
     });
 
   const [cameraPermission, requestPermission] = useCameraPermissions();
-  const { user, scannedReceipts, cameraOpen, setCameraOpen } =
+  const { user, scannedReceipts, setScannedReceipts, cameraOpen, setCameraOpen } =
     useGlobalContext();
 
+  const session = useRef({ user, scannedReceipts });
+  useLayoutEffect(() => { session.current = { user, scannedReceipts }; }, [user, scannedReceipts]);
+
+  useEffect(() => {
+    if (cameraOpen && !hintDismissed.current) {
+      hintTimer.current = setTimeout(() => {
+        if (!hintDismissed.current) setOcrHintVisible(true);
+      }, 10000);
+    }
+    return () => { if (hintTimer.current) clearTimeout(hintTimer.current); };
+  }, [cameraOpen]);
+
   const processScannedUrl = async (url: string, expected?: ReceiptVerificationDraft): Promise<boolean> => {
+    dismissOcrHint();
     if (scanned || processingRef.current) return false;
 
     if (!isOfficialReceiptUrl(url)) {
@@ -77,6 +101,7 @@ export default function Index() {
   };
 
   function openManualEntry() {
+    dismissOcrHint();
     if (!user?.selectedDB || !user.databases?.some((database) => database.serialNum === user.selectedDB)) {
       customAlert('Upozorenje!', 'Molimo izaberite bazu za skeniranje pre učitavanja računa.');
       return;
@@ -110,14 +135,18 @@ export default function Index() {
         );
       }
     }
+    hintDismissed.current = false;
+    setOcrHintVisible(false);
     setCameraOpen(true);
   }
 
   function toggleCameraFacing() {
+    dismissOcrHint();
     setFacing((current) => (current === 'back' ? 'front' : 'back'));
   }
 
   const pickImageAndScan = async () => {
+    dismissOcrHint();
     try {
       if (scanned || isProcessing) return;
 
@@ -200,9 +229,26 @@ export default function Index() {
 
       if (expected && ((expected.invoiceNumber.trim() && receiptData.invoiceNumber?.toUpperCase() !== expected.invoiceNumber.trim().toUpperCase()) ||
           (amountInMinorUnits(expected.totalAmount) !== null && amountInMinorUnits(receiptData.totalAmount ?? '') !== amountInMinorUnits(expected.totalAmount)))) {
-        customAlert('Upozorenje!', 'Podaci proverenog računa se ne poklapaju sa unetim PFR brojem ili iznosom. Proverite adresu računa.');
+        customAlert('Upozorenje!', 'Podaci proverenog računa se ne poklapaju sa unetim PFR brojem ili iznosom. Proverite podatke na stranici Poreske uprave.');
         resetScanFlags();
         return false;
+      }
+
+      if (expected) {
+        const result = appendVerifiedReceipt(session.current.scannedReceipts, session.current.user, url, receiptData);
+        if ('error' in result) {
+          customAlert('Upozorenje!', result.error);
+          resetScanFlags();
+          return false;
+        }
+        if (!result.duplicate) {
+          session.current = { ...session.current, scannedReceipts: result.receipts };
+          setScannedReceipts(result.receipts);
+        }
+        resetScanFlags();
+        setScannedData('');
+        customAlert('Obaveštenje', result.duplicate ? 'Ovaj račun je već učitan!' : 'Uspešno učitan račun.');
+        return true;
       }
 
       setScannedReceiptDataFromTC(receiptData);
@@ -230,17 +276,18 @@ export default function Index() {
   useFocusEffect(
     useCallback(() => {
       return () => {
+        dismissOcrHint();
         setCameraOpen(false);
         resetScanFlags();
         setManualEntryVisible(false);
         setShowModal(false);
       };
-    }, [setCameraOpen]),
+    }, [setCameraOpen, dismissOcrHint]),
   );
 
   const manualEntry = manualEntryVisible && (
     <ReceiptVerificationModal
-      onClose={() => setManualEntryVisible(false)}
+      onClose={() => { setManualEntryVisible(false); setCameraOpen(true); }}
       onImport={processScannedUrl}
     />
   );
@@ -265,7 +312,8 @@ export default function Index() {
 
   if (cameraOpen) {
     return (
-      <View style={styles.container}>
+      <View style={styles.container} onTouchStart={dismissOcrHint}
+        onLayout={(event) => setCameraSize(event.nativeEvent.layout)}>
         <CameraView
           style={styles.fullscreenCamera}
           facing={facing}
@@ -280,7 +328,7 @@ export default function Index() {
           name='close-circle'
           size={28}
           color='white'
-          onPress={() => { resetScanFlags(); setCameraOpen(false); }}
+          onPress={() => { dismissOcrHint(); resetScanFlags(); setCameraOpen(false); }}
         />
         <MaterialIcons
           style={styles.flipButton}
@@ -297,10 +345,15 @@ export default function Index() {
           <Ionicons name='image-outline' size={24} color='black' />
         </Pressable>
 
+        <Pressable accessibilityRole='button' accessibilityLabel='OCR skener računa'
+          onPress={openManualEntry} style={styles.ocrButton}>
+          <MaterialIcons name='document-scanner' size={24} color='#2368fd' />
+        </Pressable>
+
         {scannedReceipts && scannedReceipts.length > 0 && (
           <>
             <Pressable
-              onPress={() => setReceiptsVisible(true)}
+              onPress={() => { dismissOcrHint(); setReceiptsVisible(true); }}
               android_ripple={{ color: 'transparent' }}
               style={styles.showReceiptsButton}
             >
@@ -318,9 +371,8 @@ export default function Index() {
           <Text style={styles.scanText}>Skenirajte QR kod</Text>
         </View>
 
-        <Pressable style={styles.manualButton} onPress={openManualEntry} accessibilityRole='button'>
-          <Text className='font-rubik-medium' style={{ color: '#2368fd' }}>QR kod nije čitljiv?</Text>
-        </Pressable>
+        {ocrHintVisible && <OcrCameraHint width={cameraSize.width} height={cameraSize.height}
+          buttonBottom={Platform.OS === 'ios' ? 160 : 180} />}
         {manualEntry}
         {receiptPreview}
       </View>
@@ -392,9 +444,6 @@ export default function Index() {
         Kliknite ikonicu iznad kako biste otvorili kameru i započeli skeniranje
         računa
       </Text>
-      <TouchableOpacity onPress={openManualEntry} style={{ marginTop: 24, padding: 12 }}>
-        <Text className='font-rubik-medium' style={{ color: 'white', textDecorationLine: 'underline' }}>Unesi račun bez QR koda</Text>
-      </TouchableOpacity>
       {manualEntry}
       {receiptPreview}
     </View>
@@ -408,10 +457,6 @@ const styles = StyleSheet.create({
   },
   fullscreenCamera: {
     flex: 1,
-  },
-  manualButton: {
-    position: 'absolute', bottom: 32, alignSelf: 'center', backgroundColor: 'white',
-    paddingHorizontal: 20, paddingVertical: 12, borderRadius: 16,
   },
   closeButton: {
     position: 'absolute',
@@ -441,9 +486,13 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     zIndex: 1,
   },
+  ocrButton: {
+    position: 'absolute', bottom: Platform.OS === 'ios' ? 160 : 180, left: 20,
+    borderRadius: 20, padding: 10, backgroundColor: 'white', zIndex: 1,
+  },
   showReceiptsButton: {
     position: 'absolute',
-    bottom: Platform.OS === 'ios' ? 160 : 180,
+    bottom: Platform.OS === 'ios' ? 220 : 240,
     left: 20,
     borderRadius: 20,
     padding: 10,
@@ -462,7 +511,7 @@ const styles = StyleSheet.create({
   scanText: {
     color: 'white',
     fontSize: 24,
-    fontWeight: 'bold',
+    fontFamily: 'Rubik-Bold',
     position: 'absolute',
   },
 });
