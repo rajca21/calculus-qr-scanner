@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, Keyboard, Modal, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Image, Keyboard, Modal, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaProvider, SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-controller';
 import WebView from 'react-native-webview';
@@ -12,6 +12,9 @@ import {
   ReceiptVerificationDraft, validateVerificationDraft, VERIFICATION_PAGE,
 } from '@/lib/receipt-verification';
 import { buildJournalQrScript, decodeJournalQr } from '@/lib/journal-qr';
+import { isReceiptOcrAvailable, recognizeReceipt } from '@/modules/receipt-ocr';
+import { parseReceipt } from '@/lib/receipt-ocr/parseReceipt';
+import { File, Paths } from 'expo-file-system';
 
 type Props = {
   onClose: () => void;
@@ -35,11 +38,84 @@ export default function ReceiptVerificationModal({ onClose, onImport }: Props) {
   const [url, setUrl] = useState('');
   const [loading, setLoading] = useState(false);
   const [scanningQr, setScanningQr] = useState(false);
+  const [readingReceipt, setReadingReceipt] = useState(false);
+  const [receiptPhoto, setReceiptPhoto] = useState('');
+  const [ocrNotice, setOcrNotice] = useState('');
+  const [missingFields, setMissingFields] = useState<string[]>([]);
+  const ocrRequest = useRef(0);
+  const photoRef = useRef('');
+  const capturing = useRef(false);
   const webView = useRef<WebView>(null);
   const importing = useRef(false);
   const qrRequest = useRef(0);
   const qrTimeout = useRef<ReturnType<typeof setTimeout> | null>(null);
   const mounted = useRef(true);
+
+  const removePhoto = (uri: string) => {
+    // Only delete picker-created cache copies, never original gallery files.
+    if (uri && uri.startsWith(Paths.cache.uri)) {
+      try { const file = new File(uri); if (file.exists) file.delete(); } catch { /* Cache cleanup can be retried by the OS. */ }
+    }
+  };
+
+  const readReceiptPhoto = async (source: 'camera' | 'gallery') => {
+    if (capturing.current) return;
+    if (!isReceiptOcrAvailable()) {
+      setError('OCR zahteva novu instalaciju aplikacije sa OCR podrškom. Ručni unos je i dalje dostupan.');
+      return;
+    }
+    const requestId = ++ocrRequest.current;
+    capturing.current = true;
+    setReadingReceipt(true);
+    setError('');
+    let pendingPhoto = '';
+    try {
+      Keyboard.dismiss();
+      if (source === 'camera') {
+        const permission = await ImagePicker.requestCameraPermissionsAsync();
+        if (!permission.granted) throw new Error('Omogućite pristup kameri u podešavanjima telefona ili izaberite sliku iz galerije.');
+      }
+      const options: ImagePicker.ImagePickerOptions = {
+        mediaTypes: ['images'], quality: 1, allowsMultipleSelection: false,
+        // Do not force a square crop: all receipt verification fields must be visible.
+        allowsEditing: false,
+      };
+      const result = source === 'camera'
+        ? await ImagePicker.launchCameraAsync(options)
+        : await ImagePicker.launchImageLibraryAsync(options);
+      if (result.canceled) return;
+      pendingPhoto = result.assets[0].uri;
+      if (!mounted.current || requestId !== ocrRequest.current) return;
+      let timer: ReturnType<typeof setTimeout> | undefined;
+      const recognized = await Promise.race([
+        recognizeReceipt(pendingPhoto),
+        new Promise<never>((_, reject) => {
+          timer = setTimeout(() => reject(new Error('OCR timeout')), 30000);
+        }),
+      ]).finally(() => { if (timer) clearTimeout(timer); });
+      if (!mounted.current || requestId !== ocrRequest.current) return;
+      const parsed = parseReceipt(recognized.lines);
+      removePhoto(photoRef.current);
+      photoRef.current = pendingPhoto;
+      setReceiptPhoto(pendingPhoto);
+      pendingPhoto = '';
+      // A new photograph replaces the entire draft to avoid mixing receipts.
+      setDraft(parsed.draft);
+      setUrl('');
+      setMissingFields(parsed.missing);
+      setOcrNotice(parsed.missing.length
+        ? 'Proverite prepoznate podatke i dopunite označena polja. Ako tekst nije jasan, fotografišite ponovo.'
+        : 'Podaci su prepoznati. Uporedite sva polja sa fotografijom pre provere na Poreskoj upravi.');
+      if (parsed.ambiguous.length) setOcrNotice('Pronađeni su različiti podaci. Fotografija treba da prikazuje samo jedan račun. Dopunite označena polja.');
+    } catch {
+      if (mounted.current && requestId === ocrRequest.current)
+        setError('Račun nije pročitan. Proverite dozvolu za kameru, fotografišite jasnije ili unesite podatke ručno.');
+    } finally {
+      removePhoto(pendingPhoto);
+      capturing.current = false;
+      if (mounted.current && requestId === ocrRequest.current) setReadingReceipt(false);
+    }
+  };
 
   const stopQrScan = () => {
     qrRequest.current++;
@@ -53,6 +129,7 @@ export default function ReceiptVerificationModal({ onClose, onImport }: Props) {
     return () => {
       mounted.current = false;
       if (qrTimeout.current) clearTimeout(qrTimeout.current);
+      removePhoto(photoRef.current);
     };
   }, []);
 
@@ -138,12 +215,12 @@ export default function ReceiptVerificationModal({ onClose, onImport }: Props) {
 
   return (
     <Modal visible animationType='slide' presentationStyle='fullScreen' statusBarTranslucent navigationBarTranslucent
-      onRequestClose={() => { if (!loading) onClose(); }}>
+      onRequestClose={() => { if (!loading && !readingReceipt) onClose(); }}>
       <SafeAreaProvider style={styles.container}>
       <SafeAreaView style={styles.container} edges={['top', 'bottom', 'left', 'right']}>
         <View style={styles.header}>
           <Text style={styles.title}>Račun bez QR koda</Text>
-          <Pressable accessibilityRole='button' disabled={loading} onPress={onClose} hitSlop={12}>
+          <Pressable accessibilityRole='button' disabled={loading || readingReceipt} onPress={onClose} hitSlop={12}>
             <Text style={styles.link}>Zatvori</Text>
           </Pressable>
         </View>
@@ -214,21 +291,33 @@ export default function ReceiptVerificationModal({ onClose, onImport }: Props) {
           <KeyboardAwareScrollView style={styles.scroll} bottomOffset={24} keyboardShouldPersistTaps='handled' contentContainerStyle={styles.form}>
             <Text style={styles.description}>
               {step === 'entry'
-                ? 'Prepišite podatke sa računa. Provera se obavlja na zvaničnoj stranici Poreske uprave.'
+                ? 'Fotografišite račun za automatski unos ili prepišite podatke ručno. Provera se obavlja na zvaničnoj stranici Poreske uprave.'
                 : 'Adresa je očitana iz QR koda ili uneta ručno. Pritisnite „Učitaj račun“ za proveru i pregled računa.'}
             </Text>
             {step === 'entry' ? <>
+              <View style={styles.captureActions}>
+                <Pressable accessibilityRole='button' disabled={readingReceipt} style={styles.button} onPress={() => readReceiptPhoto('camera')}>
+                  <LoadingButtonContent loading={readingReceipt} label={receiptPhoto ? 'Fotografiši ponovo' : 'Fotografiši račun'} textClassName='font-rubik-medium text-white text-base' />
+                </Pressable>
+                <Pressable accessibilityRole='button' disabled={readingReceipt} style={styles.secondary} onPress={() => readReceiptPhoto('gallery')}>
+                  <Text style={styles.link}>Izaberi sliku računa</Text>
+                </Pressable>
+                <Text style={styles.description}>Fotografišite deo sa ukupnim iznosom, PFR vremenom, PFR brojem i brojačem. Držite telefon mirno i izbegnite odsjaj.</Text>
+              </View>
+              {!!receiptPhoto && <Image accessibilityLabel='Fotografija računa za proveru prepoznatih podataka' source={{ uri: receiptPhoto }} style={styles.receiptPhoto} resizeMode='contain' />}
+              {!!ocrNotice && <Text accessibilityLiveRegion='polite' style={styles.ocrNotice}>{ocrNotice}</Text>}
               {fields.map((field) => (
                 <View key={field.key} style={styles.field}>
                   <Text style={styles.label}>{field.label}</Text>
                   <TextInput
                     accessibilityLabel={field.label}
-                    style={styles.input}
+                    style={[styles.input, missingFields.includes(field.key) && !draft[field.key] && styles.missingInput]}
                     value={draft[field.key]}
                     onChangeText={(value) => { setDraft((previous) => ({ ...previous, [field.key]: value })); setUrl(''); }}
                     placeholder={field.placeholder}
                     placeholderTextColor='#8793a5'
                     autoCorrect={false}
+                    editable={!readingReceipt}
                     autoCapitalize={field.key === 'invoiceNumber' ? 'characters' : 'none'}
                   />
                 </View>
@@ -238,7 +327,8 @@ export default function ReceiptVerificationModal({ onClose, onImport }: Props) {
               <View style={styles.suffixes}>
                 {Object.entries(COUNTER_SUFFIXES).map(([latin, cyrillic]) => (
                   <Pressable key={latin} accessibilityRole='button' accessibilityState={{ selected: draft.suffix === latin }}
-                    style={[styles.suffix, draft.suffix === latin && styles.selectedSuffix]}
+                    style={[styles.suffix, draft.suffix === latin && styles.selectedSuffix, missingFields.includes('suffix') && !draft.suffix && styles.missingInput]}
+                    disabled={readingReceipt}
                     onPress={() => { setDraft((previous) => ({ ...previous, suffix: latin })); setUrl(''); }}>
                     <Text style={styles.suffixText}>{latin} / {cyrillic}</Text>
                   </Pressable>
@@ -250,10 +340,10 @@ export default function ReceiptVerificationModal({ onClose, onImport }: Props) {
                 placeholder='https://suf.purs.gov.rs/v/?vl=…' autoCapitalize='none' autoCorrect={false} multiline editable={!loading} />
             </>}
             {!!error && <Text accessibilityRole='alert' style={styles.error}>{error}</Text>}
-            <Pressable style={styles.button} disabled={loading} onPress={step === 'entry' ? verify : importReceipt}>
+            <Pressable style={styles.button} disabled={loading || readingReceipt} onPress={step === 'entry' ? verify : importReceipt}>
               <LoadingButtonContent loading={loading} label={step === 'entry' ? 'Proveri na Poreskoj upravi' : 'Učitaj račun'} textClassName='font-rubik-medium text-white text-base' />
             </Pressable>
-            <Pressable disabled={loading} style={styles.secondary} onPress={() => { setStep(step === 'entry' ? 'import' : 'entry'); setError(''); }}>
+            <Pressable disabled={loading || readingReceipt} style={styles.secondary} onPress={() => { setStep(step === 'entry' ? 'import' : 'entry'); setError(''); }}>
               <Text style={styles.link}>{step === 'entry' ? 'Već imam adresu računa' : 'Nazad na podatke'}</Text>
             </Pressable>
             {step === 'import' && <Pressable disabled={loading} style={styles.secondary} onPress={verify}><Text style={styles.link}>Nazad na proveru</Text></Pressable>}
@@ -267,6 +357,10 @@ export default function ReceiptVerificationModal({ onClose, onImport }: Props) {
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: 'white' },
+  captureActions: { marginBottom: 8 },
+  receiptPhoto: { width: '100%', height: 240, backgroundColor: '#f5f7fb', borderRadius: 12, marginBottom: 16 },
+  ocrNotice: { fontFamily: 'Rubik-Regular', color: '#18253b', padding: 12, backgroundColor: '#eaf1ff', borderRadius: 12, marginBottom: 18, lineHeight: 22 },
+  missingInput: { borderColor: '#d29c38', borderWidth: 1 },
   scroll: { flex: 1, minHeight: 0 },
   header: { padding: 20, flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 12 },
   title: { fontFamily: 'Rubik-SemiBold', fontSize: 20, color: '#18253b', flex: 1 },

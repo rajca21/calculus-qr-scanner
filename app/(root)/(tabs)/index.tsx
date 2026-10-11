@@ -81,7 +81,11 @@ export default function Index() {
       customAlert('Upozorenje!', 'Molimo izaberite bazu za skeniranje pre učitavanja računa.');
       return;
     }
-    if (!processingRef.current && !scanned) setManualEntryVisible(true);
+    if (!processingRef.current && !scanned) {
+      // Release the live scanner before opening the photo capture camera.
+      setCameraOpen(false);
+      setManualEntryVisible(true);
+    }
   }
 
   async function openCamera() {

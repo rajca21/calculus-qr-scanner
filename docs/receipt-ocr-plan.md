@@ -4,11 +4,16 @@ Research date: 2026-10-10.
 
 ## Implementation status
 
+On-device OCR capture/import is now implemented with a local Expo module:
+bundled ML Kit on Android and Apple Vision on iOS. The photo fills the editable
+draft; missing/conflicting fields are highlighted, and the user reviews values
+against the photo before verification. See [OCR testing instructions](receipt-ocr-testing.md)
+for validation evidence, limitations, and installing a new development build.
+
 The first manual-entry milestone is implemented: scanner/home entry points,
 editable verification fields and suffix selection, official-page WebView prefill,
 canonical receipt-link detection, pasted-link import, strict URL checks, and
-invoice/amount comparison before the existing receipt preview. OCR and native
-OCR dependencies have not been added yet. The user verified that manual entry,
+invoice/amount comparison before the existing receipt preview. The user verified that manual entry,
 embedded verification, and opening the result/journal work on their device.
 The result page does not expose a canonical receipt link in that tested flow.
 
