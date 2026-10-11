@@ -1,0 +1,8 @@
+{
+  "name": "receipt-ocr",
+  "version": "1.0.0",
+  "description": "Local on-device receipt text recognition",
+  "main": "index.ts",
+  "private": true,
+  "license": "UNLICENSED"
+}

@@ -1,0 +1,17 @@
+plugins {
+  id 'com.android.library'
+  id 'expo-module-gradle-plugin'
+}
+
+group = 'expo.modules.receiptocr'
+version = '1.0.0'
+
+android {
+  namespace 'expo.modules.receiptocr'
+  defaultConfig { versionCode 1; versionName '1.0.0' }
+}
+
+dependencies {
+  // Bundled Latin model: no download or API key is needed for recognition.
+  implementation 'com.google.mlkit:text-recognition:16.0.1'
+}

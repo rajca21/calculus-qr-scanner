@@ -28,7 +28,9 @@ yarn-error.*
 # macOS
 .DS_Store
 *.pem
-ios
+# Generated native app projects; local modules' native sources must be committed.
+/ios/
+/android/
 
 # local env files
 .env*.local
@@ -37,4 +39,6 @@ ios
 *.tsbuildinfo
 
 app-example
-ios
+
+# dev
+receipt-examples
