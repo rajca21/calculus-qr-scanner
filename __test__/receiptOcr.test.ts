@@ -4,6 +4,96 @@ import type { OcrLine } from '@/modules/receipt-ocr';
 const lines = (values: string[]): OcrLine[] => values.map((text, index) => ({ text, x: 0.1, y: index * 0.05, width: 0.8, height: 0.02 }));
 
 describe('receipt OCR field extraction', () => {
+  it('matches the tilted Latin total row instead of a tax value closer in image Y', () => {
+    // Geometry follows the observed Vision layout; fiscal IDs are synthetic.
+    const result = parseReceipt([
+      { text: 'Ukupan iznos:', x: 0.131, y: 0.417, width: 0.138, height: 0.041 },
+      { text: 'Gotovina:', x: 0.141, y: 0.448, width: 0.094, height: 0.030 },
+      { text: '30,698.40', x: 0.457, y: 0.341, width: 0.099, height: 0.044 },
+      { text: '30,698.40', x: 0.467, y: 0.364, width: 0.098, height: 0.042 },
+      { text: '5,116.40', x: 0.510, y: 0.442, width: 0.090, height: 0.039 },
+      { text: 'Ukupan iznos poreza:', x: 0.187, y: 0.548, width: 0.193, height: 0.057 },
+      { text: 'PFR vreme:', x: 0.203, y: 0.602, width: 0.113, height: 0.038 },
+      { text: '09.10.2026. 12:13:35', x: 0.446, y: 0.526, width: 0.197, height: 0.059 },
+      { text: 'PFR broj racuna:', x: 0.210, y: 0.607, width: 0.159, height: 0.052 },
+      { text: 'ABCDEFGH-12345678-1141', x: 0.359, y: 0.544, width: 0.290, height: 0.079 },
+      { text: 'Brojac racuna:', x: 0.216, y: 0.626, width: 0.139, height: 0.050 },
+      { text: '1088/1141ПП', x: 0.527, y: 0.561, width: 0.129, height: 0.042 },
+    ]);
+    expect(result.draft.totalAmount).toBe('30,698.40');
+    expect(result.draft.dateTime).toBe('09.10.2026. 12:13:35');
+    expect(result.missing).toEqual([]);
+  });
+
+  it('matches tilted Cyrillic totals with split date and mixed-alphabet time labels', () => {
+    const result = parseReceipt([
+      { text: 'Укупан износ:', x: 0.172, y: 0.418, width: 0.150, height: 0.032 },
+      { text: '4.513,29', x: 0.534, y: 0.373, width: 0.098, height: 0.028 },
+      { text: '675,72', x: 0.568, y: 0.432, width: 0.076, height: 0.022 },
+      { text: 'ПФР', x: 0.192, y: 0.545, width: 0.037, height: 0.015 },
+      { text: 'Bpeмe:', x: 0.225, y: 0.534, width: 0.086, height: 0.022 },
+      { text: '03.10', x: 0.422, y: 0.510, width: 0.060, height: 0.017 },
+      { text: '2026.', x: 0.490, y: 0.499, width: 0.062, height: 0.021 },
+      { text: '16:17:35', x: 0.552, y: 0.485, width: 0.105, height: 0.025 },
+    ]);
+    expect(result.draft.totalAmount).toBe('4.513,29');
+    expect(result.draft.dateTime).toBe('03.10.2026. 16:17:35');
+  });
+
+  test.each([
+    ['PFR vreme: 9 / 10 / 2026 12 : 13 : 35', '09.10.2026. 12:13:35'],
+    ['ПФР време: 09-10-2026 12.13.35', '09.10.2026. 12:13:35'],
+    ['PFR vreme: 09. 10. 2026. 12：13：35', '09.10.2026. 12:13:35'],
+  ])('normalizes OCR spacing and punctuation in %s', (text, expected) => {
+    expect(parseReceipt(lines([text])).draft.dateTime).toBe(expected);
+  });
+
+  it('joins a full date and separate time despite intervening OCR observations', () => {
+    const result = parseReceipt([
+      { text: '09.10.2026.', x: 0.40, y: 0.51, width: 0.15, height: 0.025 },
+      { text: 'PFR vreme:', x: 0.10, y: 0.52, width: 0.18, height: 0.03 },
+      { text: '12 : 13 : 35', x: 0.56, y: 0.50, width: 0.12, height: 0.03 },
+      { text: 'Printed: 08.10.2026. 11:00:00', x: 0.10, y: 0.8, width: 0.60, height: 0.02 },
+    ]);
+    expect(result.draft.dateTime).toBe('09.10.2026. 12:13:35');
+    expect(result.ambiguous).not.toContain('dateTime');
+  });
+
+  it('handles separated total label words and decimal punctuation spaces', () => {
+    const result = parseReceipt([
+      { text: 'Укупан', x: 0.1, y: 0.5, width: 0.12, height: 0.02 },
+      { text: 'износ:', x: 0.23, y: 0.5, width: 0.1, height: 0.02 },
+      { text: '4 . 513 , 29 RSD', x: 0.65, y: 0.5, width: 0.25, height: 0.02 },
+    ]);
+    expect(result.draft.totalAmount).toBe('4.513,29');
+    expect(parseReceipt(lines(['Ukupaniznos: 100,00'])).draft.totalAmount).toBe('100,00');
+  });
+
+  it('does not treat a split tax label, a negative amount, or ambiguous rows as a total', () => {
+    const result = parseReceipt([
+      { text: 'Ukupan', x: 0.1, y: 0.5, width: 0.10, height: 0.02 },
+      { text: 'iznos', x: 0.21, y: 0.5, width: 0.10, height: 0.02 },
+      { text: 'poreza:', x: 0.32, y: 0.5, width: 0.10, height: 0.02 },
+      { text: '717,45', x: 0.65, y: 0.5, width: 0.20, height: 0.02 },
+    ]);
+    expect(result.draft.totalAmount).toBe('');
+    expect(parseReceipt(lines(['Ukupan iznos: -100,00'])).draft.totalAmount).toBe('');
+    const ambiguous = parseReceipt([
+      { text: 'Ukupan iznos:', x: 0.1, y: 0.5, width: 0.30, height: 0.02 },
+      { text: '100,00', x: 0.65, y: 0.5, width: 0.20, height: 0.02 },
+      { text: '200,00', x: 0.65, y: 0.501, width: 0.20, height: 0.02 },
+    ]);
+    expect(ambiguous.draft.totalAmount).toBe('');
+    expect(ambiguous.ambiguous).toContain('totalAmount');
+  });
+
+  it('keeps an unanchored slanted total empty rather than substituting the nearest tax row', () => {
+    const result = parseReceipt([
+      { text: 'Ukupan iznos:', x: 0.13, y: 0.417, width: 0.138, height: 0.041 },
+      { text: '5,116.40', x: 0.510, y: 0.442, width: 0.090, height: 0.039 },
+    ]);
+    expect(result.draft.totalAmount).toBe('');
+  });
   it('extracts Latin receipt fields and preserves printed seconds', () => {
     const result = parseReceipt(lines([
       'Ukupan iznos: 30,698.40', 'Gotovina: 30,698.40', 'Ukupan iznos poreza: 5,116.40',

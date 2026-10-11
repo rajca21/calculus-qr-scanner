@@ -27,16 +27,46 @@ scanner list, then returns to the camera. There is no URL or preview step. Dupli
 receipts are not added, and the existing 30-receipt limit is enforced. Corrections
 made on TaxCore are checked against the resulting official receipt details.
 
-## Validation for the scanner UX update
+## Validation for the scanner and OCR parser updates
 
-- Typecheck, lint, and 62 automated tests pass, including variable identifier
+- Typecheck, lint, and 71 automated tests pass, including variable identifier
   lengths, masked typing/backspace/paste, field errors, result detection without
   a URL change, preserving TaxCore corrections, scrolling once, direct import,
-  duplicates, and the receipt limit.
+  duplicates, the receipt limit, tilted monetary rows, split labels and date/time
+  fragments, punctuation spacing, and rejection of tax/ambiguous amount matches.
 - No native dependencies or native OCR code changed. Refresh the existing
   OCR-enabled development build through Metro; this update needs no native rebuild.
 - Visual checks and the full live TaxCore flow on Android/iOS remain to be checked
   on devices. The simulator UI tool was unavailable during this update.
+
+## Amount and date extraction improvements
+
+OCR observations are not always horizontal rows. On tilted photos, comparing label
+and value Y positions alone can select tax from a different row. The parser now
+uses separately recognized fiscal labels and their known-format values to estimate
+row slope before associating the receipt total. Split `Ukupan` / `iznos` labels are
+joined, while tax labels remain excluded. Without a reliable alignment anchor, a
+visibly tilted label stays unresolved rather than guessing a nearby amount.
+
+Dates and times can be separate observations, including day/month, year, and time.
+They are assembled using their positions instead of depending on the global OCR
+line ordering. Spaces around punctuation, slash/dash date separators, full-width
+colons, and dot-separated times are normalized and checked against real dates.
+A date associated with the PFR time label takes priority over unrelated dates.
+Numeric OCR character substitutions are not guessed.
+
+Replaying the saved Vision observations from the two local sample photos now
+extracts the printed totals `4.513,29` and `30,698.40`. The previous association
+selected `675,72` and `5,116.40`, both tax values. Both dates populate, but the first
+photo's recognized hour remains `18` although the original prints `16`. Parser
+improvements cannot recover digits the engine misread; user review is required.
+The samples remain local and receipt identifiers are not copied into fixtures.
+
+Check new captures and gallery images on both platforms after refreshing Metro.
+If fields remain empty, the failing photo/recognized layout is needed to distinguish
+missing recognition from unsupported parsing. Focused region recognition and image
+preprocessing can then be evaluated against those failures; native engine changes
+would require a new development build.
 
 ## Native engines
 
