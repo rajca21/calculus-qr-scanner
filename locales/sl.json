@@ -1,7 +1,6 @@
 {
   "ios": {
-    "NSCameraUsageDescription": "Dovolite aplikaciji Calculus dostop do kamere za skeniranje fiskalnih računov.",
-    "NSPhotoLibraryUsageDescription": "Dovolite aplikaciji Calculus dostop do galerije za skeniranje QR kode iz slike računa.",
-    "NSMicrophoneUsageDescription": "Aplikacija Calculus ne uporablja mikrofona, vendar je dovoljenje lahko potrebno za sistemske funkcije."
+    "NSCameraUsageDescription": "Dovolite aplikaciji Calculus dostop do kamere za skeniranje QR kod in fotografiranje fiskalnih računov za OCR.",
+    "NSPhotoLibraryUsageDescription": "Dovolite aplikaciji Calculus dostop do izbranih fotografij fiskalnih računov za skeniranje QR kod in prepoznavanje besedila (OCR)."
   }
 }

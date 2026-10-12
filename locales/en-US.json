@@ -1,7 +1,6 @@
 {
   "ios": {
-    "NSCameraUsageDescription": "Allow Calculus to access your camera to scan fiscal receipts.",
-    "NSPhotoLibraryUsageDescription": "Allow Calculus to access your photo library to scan QR codes from receipt images.",
-    "NSMicrophoneUsageDescription": "Calculus does not use the microphone, but permission may be required by the system."
+    "NSCameraUsageDescription": "Allow Calculus to use the camera to scan QR codes and photograph fiscal receipts for text recognition (OCR).",
+    "NSPhotoLibraryUsageDescription": "Allow Calculus to access selected receipt photos to scan QR codes and recognize receipt text (OCR)."
   }
 }

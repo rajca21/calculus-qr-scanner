@@ -3,7 +3,7 @@
     "name": "Calculus Čitač Fiskala",
     "slug": "calculus-citac-fiskala",
     "owner": "nikolacalculusmd",
-    "version": "1.0.7",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "calculusqr",
@@ -13,7 +13,7 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.calculus.calculuscitacfiskala",
-      "buildNumber": "7",
+      "buildNumber": "8",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
         "CFBundleDevelopmentRegion": "en"
@@ -24,13 +24,18 @@
         "foregroundImage": "./assets/images/icon.png",
         "backgroundColor": "#ffffff"
       },
-      "versionCode": 7,
+      "versionCode": 8,
       "permissions": [
         "android.permission.CAMERA"
       ],
       "package": "com.calculus.calculuscitacfiskala",
       "allowBackup": false,
-      "softwareKeyboardLayoutMode": "resize"
+      "softwareKeyboardLayoutMode": "resize",
+      "blockedPermissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.READ_MEDIA_IMAGES",
+        "android.permission.READ_MEDIA_VIDEO"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -51,15 +56,17 @@
       [
         "expo-camera",
         {
-          "cameraPermission": "Allow camera access to scan fiscal receipts."
+          "cameraPermission": "Dozvolite aplikaciji Calculus pristup kameri radi skeniranja QR kodova i fotografisanja fiskalnih računa za OCR.",
+          "microphonePermission": false,
+          "recordAudioAndroid": false
         }
       ],
       [
         "expo-image-picker",
         {
-          "photosPermission": "Dozvolite Calculus aplikaciji da pristupi Vašoj galeriji radi skeniranja QR koda sa slike",
-          "cameraPermission": "Dozvolite Calculus aplikaciji da koristi kameru za skeniranje QR koda",
-          "microphonePermission": "Dozvolite Calculus aplikaciji da koristi mikrofon"
+          "photosPermission": "Dozvolite aplikaciji Calculus pristup izabranim fotografijama fiskalnih računa radi skeniranja QR kodova i prepoznavanja teksta (OCR).",
+          "cameraPermission": "Dozvolite aplikaciji Calculus pristup kameri radi fotografisanja fiskalnih računa i prepoznavanja teksta (OCR).",
+          "microphonePermission": false
         }
       ],
       "expo-font",

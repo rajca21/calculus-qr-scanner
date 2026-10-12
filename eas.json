@@ -14,12 +14,15 @@
     "production": {
       "distribution": "store",
       "ios": {
-        "resourceClass": "m-medium"
+        "resourceClass": "m-medium",
+        "image": "sdk-57"
       },
       "node": "22.20.0",
       "android": {
-        "buildType": "app-bundle"
-      }
+        "buildType": "app-bundle",
+        "image": "sdk-57"
+      },
+      "environment": "production"
     }
   },
   "submit": {
